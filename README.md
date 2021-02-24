@@ -18,9 +18,9 @@ without using annotations or separate doc files.
 Use the package manager (*npm* or *yarn*) to install dependencies.
 
 ```bash
-npm install express-joi-to-swagger
+npm install @goodrequest/express-joi-to-swagger
 or
-yarn add express-joi-to-swagger
+yarn add @goodrequest/express-joi-to-swagger
 ```
 
 ## Requirements
@@ -145,6 +145,7 @@ Feel free to check following #TODO ideas we have:
 | #1	|      @all 	| create tests														                      						|
 | #2	|      @all		| update to new Open API after release 3.1.0 fix issue https://github.com/OAI/OpenAPI-Specification/pull/2117								                                                  						|
 | #3	|      @all  	| sync with branch v14 													                              						|
+| #4	|      @all  	| implement search in generated UI 													                              						|
 
 
 ## Credits
