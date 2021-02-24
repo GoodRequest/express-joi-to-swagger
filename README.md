@@ -19,22 +19,22 @@ yarn add express-joi-to-swagger
 
 | Name								| Type   		| Required 			  |Description																			  						|
 | ----------------------------------|---------------|:----------------------:|---------------------------------------------------------------------------------------------------- 			|
-| ** outputPath **					| string  		|  ✅  | Path to directory where output files (JSON if generateUI == false) should be created. 														                      						|
-| ** generateUI **					| boolean 		|  ✅  | Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated.					                                                  						|
-| ** permissions **					| object  		|  ✅  | Configuration parameters for parsing permissions.
-| ** permissions.**middlewareName	| string  		|  ✅  | Name of the middleware responsible for handling API permissions.													                              						|
-| ** permissions.**closure			| string  		|  ✅  | Name of the permission middleware closure. 													                              						|
-| ** permissions.**paramName		| string  		|  ✅  | Name of the parameter containing permissions passed to middleware.													                              						|
-| ** requestSchemaName **			| string  		|  ❌  | Name of the Joi schema object defining request structure.     |
-| ** responseSchemaName **			| string  		|  ❌  | Name of the Joi schema object defining response structure.     |
-| ** businessLogicName **			| string  		|  ✅  | Name of the function responsible for handling business logic of the request.     |
-| ** swaggerInitInfo **				| ISwaggerInit 	|  ❌  | Swagger initial information.      |
-| ** tags** 						| string  		|  ❌  | Configuration parameters for parsing [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/).      |
-| ** tags.**baseUrlSegmentsLength 	| number  		|  ❌  | Number of base URL segments.      |
-| ** tags.**joinTags 				| boolean 		|  ❌  | If set to true, array of parsed tags will be joined to string by **tagSeparator**, otherwise array of tags is returned.      |
-| ** tags.**tagSeparator 			| string  		|  ❌  | String used to join parsed tags.    |
-| ** tags.**versioning 				| boolean  		|  ❌  | If you are using multiple versions of API, you can separate endpoints also by API version. In this case it is necessary to define param **"baseUrlSegmentsLength"**.     |
-| ** tags.**versionSeparator 		| string  		|  ❌  | String used to separate parsed tags from API version tag is versioning == true.     |
+| **outputPath**					| string  		|  ✅  | Path to directory where output files (JSON if generateUI == false) should be created. 														                      						|
+| **generateUI**					| boolean 		|  ✅  | Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated.					                                                  						|
+| **permissions**					| object  		|  ✅  | Configuration parameters for parsing permissions.
+| **permissions.middlewareName**	| string  		|  ✅  | Name of the middleware responsible for handling API permissions.													                              						|
+| **permissions.closure**			| string  		|  ✅  | Name of the permission middleware closure. 													                              						|
+| **permissions.paramName**		| string  		|  ✅  | Name of the parameter containing permissions passed to middleware.													                              						|
+| **requestSchemaName**			| string  		|  ❌  | Name of the Joi schema object defining request structure.     |
+| **responseSchemaName**			| string  		|  ❌  | Name of the Joi schema object defining response structure.     |
+| **businessLogicName**			| string  		|  ✅  | Name of the function responsible for handling business logic of the request.     |
+| **swaggerInitInfo**				| ISwaggerInit 	|  ❌  | Swagger initial information.      |
+| **tags**						| string  		|  ❌  | Configuration parameters for parsing [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/).      |
+| **tags.baseUrlSegmentsLength** 	| number  		|  ❌  | Number of base URL segments.      |
+| **tags.joinTags** 				| boolean 		|  ❌  | If set to true, array of parsed tags will be joined to string by **tagSeparator**, otherwise array of tags is returned.      |
+| **tags.tagSeparator** 			| string  		|  ❌  | String used to join parsed tags.    |
+| **tags.versioning** 				| boolean  		|  ❌  | If you are using multiple versions of API, you can separate endpoints also by API version. In this case it is necessary to define param **"baseUrlSegmentsLength"**.     |
+| **tags.versionSeparator** 		| string  		|  ❌  | String used to separate parsed tags from API version tag is versioning == true.     |
 
 
 ## Usage example
