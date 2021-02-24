@@ -236,7 +236,7 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 			let workflowHandlerPromise: any
 
 			forEach(route.stack, (handle) => {
-				if (handle.name === config.permissions.middlewareName) {
+				if (config.permissions && handle.name === config.permissions.middlewareName) {
 					permissionHandlerPromise = locate(handle.handle, {
 						closure: (config.permissions.closure === 'default' ? 'exports.default' : config.permissions.closure),
 						paramName: config.permissions.paramName
