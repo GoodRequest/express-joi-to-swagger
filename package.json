@@ -9,9 +9,13 @@
   "author": "Goodrequest",
   "license": "MIT",
   "scripts": {
+	"prebublishOnly": "tsc --project tsconfig.build.json",
     "demo": "node -r ts-node/register demo/index.ts",
     "test": "jest --passWithNoTests"
   },
+  "files": [
+	  "dist"
+  ],
   "dependencies": {
     "clean-webpack-plugin": "3.0.0",
     "css-loader": "5.0.2",
