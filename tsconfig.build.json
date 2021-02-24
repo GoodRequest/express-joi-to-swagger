@@ -8,6 +8,7 @@
         "noImplicitAny": true,
 		"declaration": true,
 		"skipLibCheck": true,
+		"allowJs": true,
 		"typeRoots" : [
             "./src/types",
         ]
