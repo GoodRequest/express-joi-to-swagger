@@ -1,6 +1,6 @@
 {
   "name": "@goodrequest/express-joi-to-swagger",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "src/index.ts",
   "repository": {
     "type": "git",
@@ -9,7 +9,7 @@
   "author": "Goodrequest",
   "license": "MIT",
   "scripts": {
-	"prepublishOnly": "npm install",
+    "prepublishOnly": "npm install",
     "demo": "node -r ts-node/register demo/index.ts",
     "test": "jest --passWithNoTests"
   },
