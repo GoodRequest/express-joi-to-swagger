@@ -1,8 +1,8 @@
 {
   "name": "express-joi-to-swagger",
   "version": "0.0.1",
-  "main": "index.ts",
-  "repository": "git@bitbucket.org:lubomir_igonda/apidoc.git",
+  "main": "src/index.ts",
+  "repository": "https://github.com/GoodRequest/express-joi-to-swagger",
   "author": "Goodrequest",
   "license": "MIT",
   "scripts": {
