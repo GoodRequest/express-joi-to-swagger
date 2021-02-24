@@ -1,7 +1,7 @@
 {
   "name": "@goodrequest/express-joi-to-swagger",
   "version": "0.0.6",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/GoodRequest/express-joi-to-swagger.git"
