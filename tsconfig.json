@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+		"esModuleInterop": true,
+        "target": "es6",
+        "module": "commonjs",
+    	"outDir": "./dist",
+		"sourceMap": true,
+        "noImplicitAny": true,
+		"typeRoots" : [
+            "./src/types",
+            "node_modules/@types"
+        ]
+    },
+    "include": [
+		"jest.config.js",
+        "./demo/**/*",
+		"./src/**/*",
+		"./tests/**/*",
+		"./scripts/**/*"
+	],
+	"exclude": [
+		"node_modules"
+    ]
+}

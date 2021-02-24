@@ -1,0 +1,86 @@
+{
+	"openapi": "3.0.3",
+	"servers": [
+		{
+			"url": "localhost:8080"
+		}
+	],
+	"info": {
+		"description": "Generated Store",
+		"version": "1.0.6-SNAPSHOT",
+		"title": "Test app",
+		"termsOfService": "http://swagger.io/terms/",
+		"contact": {
+			"email": "apiteam@swagger.io"
+		},
+		"license": {
+			"name": "Apache 2.0",
+			"url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+		}
+	},
+	"paths": {
+		"/api/v1/users/{userID}": {
+			"get": {
+				"tags": [
+					"Users"
+				],
+				"description": "PERMISSION: [SUPERADMIN, TEST]",
+				"parameters": [
+					{
+						"name": "userID",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "number",
+							"format": "float"
+						}
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"required": true
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"user": {
+											"type": "object",
+											"properties": {
+												"id": {
+													"type": "number",
+													"format": "float"
+												},
+												"name": {
+													"type": "string"
+												},
+												"surname": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false
+										}
+									},
+									"additionalProperties": false
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"externalDocs": {
+		"description": "Find out more about Swagger",
+		"url": "http://swagger.io"
+	},
+	"components": {}
+}
