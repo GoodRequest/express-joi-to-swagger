@@ -9,6 +9,7 @@
   "author": "Goodrequest",
   "license": "MIT",
   "scripts": {
+	"prepublishOnly": "npm install",
     "demo": "node -r ts-node/register demo/index.ts",
     "test": "jest --passWithNoTests"
   },
