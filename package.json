@@ -1,7 +1,7 @@
 {
   "name": "@goodrequest/express-joi-to-swagger",
-  "version": "0.0.1",
-  "main": "src/index.ts",
+  "version": "0.0.7",
+  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/GoodRequest/express-joi-to-swagger.git"
@@ -9,9 +9,13 @@
   "author": "Goodrequest",
   "license": "MIT",
   "scripts": {
+    "prebublishOnly": "tsc --project tsconfig.build.json",
     "demo": "node -r ts-node/register demo/index.ts",
     "test": "jest --passWithNoTests"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "clean-webpack-plugin": "3.0.0",
     "css-loader": "5.0.2",

@@ -2,6 +2,7 @@
 /logs
 /coverage
 /temp
+/dist
 .vscode
 .env
 .idea

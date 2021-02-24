@@ -6,17 +6,17 @@
     	"outDir": "./dist",
 		"sourceMap": true,
         "noImplicitAny": true,
+		"declaration": true,
+		"skipLibCheck": true,
 		"typeRoots" : [
             "./src/types",
-            "node_modules/@types"
         ]
     },
     "include": [
-        "./demo/**/*",
 		"./src/**/*",
-		"./tests/**/*"
 	],
 	"exclude": [
-		"node_modules"
+		"node_modules",
+		"dist"
     ]
 }
