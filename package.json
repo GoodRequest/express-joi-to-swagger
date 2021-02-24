@@ -22,7 +22,6 @@
     "joi-to-swagger": "5.2.0",
     "json-loader": "0.5.7",
     "lodash": "4.17.20",
-    "np": "7.4.0",
     "style-loader": "2.0.0",
     "swagger-ui": "3.43.0",
     "ts-jest": "26.5.0",
