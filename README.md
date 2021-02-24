@@ -116,8 +116,6 @@ Feel free to check following #TODO ideas we have:
 | ------|:---------------:|-------------------------------------------------------------------------------------------------------- 			|
 | #1	|      @all 	| create tests														                      						|
 | #2	|      @all		| update to new Open API after release 3.1.0 fix issue https://github.com/OAI/OpenAPI-Specification/pull/2117								                                                  						|
-| #3	|      @all  	| sync with branch v14 													                              						|
-
 
 ## Credits
 *  [Express endpoint parser](https://github.com/AlbertoFdzM/express-list-endpoints) to retrieve a list of the passed router with the set verbs. 
