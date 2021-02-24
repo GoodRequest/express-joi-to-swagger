@@ -1,8 +1,11 @@
 {
-  "name": "express-joi-to-swagger",
+  "name": "@goodrequest/express-joi-to-swagger",
   "version": "0.0.1",
   "main": "src/index.ts",
-  "repository": "https://github.com/GoodRequest/express-joi-to-swagger",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GoodRequest/express-joi-to-swagger.git"
+  },
   "author": "Goodrequest",
   "license": "MIT",
   "scripts": {
@@ -42,5 +45,18 @@
     "husky": "4.3.8",
     "lint-staged": "10.5.3",
     "typescript": "4.1.3"
-  }
+  },
+  "description": "## Description Solution that generates beatiful Swagger API documentation from code. 💻",
+  "bugs": {
+    "url": "https://github.com/GoodRequest/express-joi-to-swagger/issues"
+  },
+  "homepage": "https://github.com/GoodRequest/express-joi-to-swagger#readme",
+  "directories": {
+    "test": "tests"
+  },
+  "keywords": [
+    "express",
+    "joi",
+    "swagger"
+  ]
 }
