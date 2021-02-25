@@ -137,6 +137,12 @@ export const permissionMiddleware = (allowPermissions: string[]) => function per
 
 ```
 
+## Result
+
+Generated SwaggerUI 
+
+![Generated SwaggerUI](demo/output-example.png)
+
 
 ## Extra Benefits
 Swagger bug reports shows inconsistency error in the schema and/or your route definition.
