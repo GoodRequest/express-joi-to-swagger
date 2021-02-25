@@ -272,7 +272,7 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 				if (has(workflow, config.responseSchemaName)) {
 					let outputJoiSchema = get(workflow, config.responseSchemaName)
 					if (typeof outputJoiSchema === 'function') {
-						outputJoiSchema = requestJoiSchema()
+						outputJoiSchema = outputJoiSchema()
 					}
 					responses.push({
 						outputJoiSchema,
