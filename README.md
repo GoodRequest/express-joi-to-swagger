@@ -25,7 +25,8 @@ yarn add @goodrequest/express-joi-to-swagger
 
 ## Requirements
 ✖ This solution is suitable for everybody who uses [Express](http://expressjs.com/) in a combination with [Joi](https://joi.dev/) to build application's API.
-This version was developed and tested on versions 17.x.x of Joi. For version 14.x.x we have parallel branch **v14**.
+This version was developed and tested on versions 17.x.x of Joi. For version 14.x.x we have parallel branch **v14**. For proper functioning it is also necessary to 
+use Typescipt version 3.7.5 and higher. 
 
 ✖ As mentioned before, it is not needed to use annotations in your code, however to make this tool works properly you need to
 obey some coding practices. You need define at least one [router](https://expressjs.com/en/guide/routing.html) in your application. If you want to include
@@ -40,24 +41,36 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 
 ## Config parameters
 
-| Name								| Type   		| Required 			  |Description																			  						|
-| ----------------------------------|---------------|:----------------------:|---------------------------------------------------------------------------------------------------- 			|
-| **outputPath**					| string  		|  ✅  | Path to directory where output files (JSON if generateUI == false) should be created. 														                      						|
-| **generateUI**					| boolean 		|  ✅  | Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated.					                                                  						|
-| **permissions**					| object  		|  ❌  | Configuration parameters for parsing permissions.
-| **permissions**.middlewareName	| string  		|  ✅  | Name of the middleware responsible for handling API permissions.													                              						|
-| **permissions**.closure			| string  		|  ✅  | Name of the permission middleware closure. 													                              						|
-| **permissions**.paramName		| string  		|  ✅  | Name of the parameter containing permissions passed to middleware.													                              						|
-| **requestSchemaName**			| string  		|  ❌  | Name of the Joi schema object defining request structure.     |
-| **responseSchemaName**			| string  		|  ❌  | Name of the Joi schema object defining response structure.     |
-| **businessLogicName**			| string  		|  ✅  | Name of the function responsible for handling business logic of the request.     |
-| **swaggerInitInfo**				| ISwaggerInit 	|  ❌  | Swagger initial information.      |
-| **tags**						| string  		|  ❌  | Configuration parameters for parsing [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/).      |
-| **tags**.baseUrlSegmentsLength 	| number  		|  ❌  | Number of base URL segments.      |
-| **tags**.joinTags 				| boolean 		|  ❌  | If set to true, array of parsed tags will be joined to string by **tagSeparator**, otherwise array of tags is returned.      |
-| **tags**.tagSeparator 			| string  		|  ❌  | String used to join parsed tags.    |
-| **tags**.versioning 				| boolean  		|  ❌  | If you are using multiple versions of API, you can separate endpoints also by API version. In this case it is necessary to define param **"baseUrlSegmentsLength"**.     |
-| **tags**.versionSeparator 		| string  		|  ❌  | String used to separate parsed tags from API version tag is versioning == true.     |
+| Name										| Type   		| Required 			  |Description																			  						|
+| ------------------------------------------|---------------|:----------------------:|---------------------------------------------------------------------------------------------------- 			|
+| **outputPath**							| string  		|  ✅  | Path to directory where output files (JSON if generateUI == false) should be created. 														                      						|
+| **generateUI**							| boolean 		|  ✅  | Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated.					                                                  						|
+| **permissions**							| object  		|  ❌  | Configuration parameters for parsing permissions.
+| **permissions**.middlewareName			| string  		|  ✅  | Name of the middleware responsible for handling API permissions.													                              						|
+| **permissions**.closure					| string  		|  ✅  | Name of the permission middleware closure. 													                              						|
+| **permissions**.paramName					| string  		|  ✅  | Name of the parameter containing permissions passed to middleware.													                              						|
+| **requestSchemaName**						| string  		|  ❌  | Name of the Joi schema object defining request structure.     |
+| **responseSchemaName**					| string  		|  ❌  | Name of the Joi schema object defining response structure.     |
+| **businessLogicName**						| string  		|  ✅  | Name of the function responsible for handling business logic of the request.     |
+| **swaggerInitInfo**						| ISwaggerInit 	|  ❌  | Swagger initial information.      |
+| **swaggerInitInfo**.servers				| IServer[] 	|  ❌  | List of API servers     |
+| **swaggerInitInfo**.servers.url			| string 		|  ❌  | API server URL      |
+| **swaggerInitInfo**.info					| IInfo 		|  ❌  | Basic API information.      |
+| **swaggerInitInfo**.info.description		| string 		|  ❌  | API description.      |
+| **swaggerInitInfo**.info.version			| string 		|  ❌  | API version.      |
+| **swaggerInitInfo**.info.title			| string 		|  ❌  | API title.      |
+| **swaggerInitInfo**.info.termsOfService 	| string 		|  ❌  | Link to terms of service.      |
+| **swaggerInitInfo**.info.contact			| IContact		|  ❌  | Swagger initial information.      |
+| **swaggerInitInfo**.info.contact.email	| string 		|  ✅ | Contact email.      |
+| **swaggerInitInfo**.info.license			| ILicense 		|  ❌  | Swagger initial information.      |
+| **swaggerInitInfo**.info.license.name		| string 		|  ✅   | License name.      |
+| **swaggerInitInfo**.info.license.url		| string 		|  ✅   | License url.      |
+| **tags**									| string  		|  ❌  | Configuration parameters for parsing [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/).      |
+| **tags**.baseUrlSegmentsLength 			| number  		|  ❌  | Number of base URL segments.      |
+| **tags**.joinTags 						| boolean 		|  ❌  | If set to true, array of parsed tags will be joined to string by **tagSeparator**, otherwise array of tags is returned.      |
+| **tags**.tagSeparator 					| string  		|  ❌  | String used to join parsed tags.    |
+| **tags**.versioning 						| boolean  		|  ❌  | If you are using multiple versions of API, you can separate endpoints also by API version. In this case it is necessary to define param **"baseUrlSegmentsLength"**.     |
+| **tags**.versionSeparator 				| string  		|  ❌  | String used to separate parsed tags from API version tag is versioning == true.     |
 
 
 ## Usage example
@@ -68,23 +81,34 @@ import getSwagger from 'express-joi-to-swagger'
 import path from 'path'
 import app from './your-path-to-express-app'
 
-// Use case example
-async function workflow() {
-	const config = {
-		outputPath: path.join(__dirname, 'outputSwagger.json'),
-		permissions: {
-			middlewareName: 'permission',
-			closure: 'Closure (exports.permissionMiddleware)',
-			paramName: 'allowPermissions'
-		},
-		validation: {
-			middlewareName: 'validate',
-			closure: 'Closure (exports.default)',
-			paramName: 'schema'
+// Config example
+const config: IConfig = {
+	outputPath: path.join(__dirname, 'dist'),
+	generateUI: true,
+	permissions: {
+		middlewareName: 'permission',
+		closure: 'permissionMiddleware',
+		paramName: 'allowPermissions'
+	},
+	requestSchemaName: 'requestSchema',
+	responseSchemaName: 'responseSchema',
+	businessLogicName: 'businessLogic',
+	swaggerInitInfo: {
+		info: {
+			description: 'Generated Store',
+			title: 'Test app'
 		}
-	}
-	await getSwagger(app, config)
-	// output is save into outputSwagger.json file
+	},
+	tags: {}
+}
+
+// Use case example
+function workflow() {
+	getSwagger(app, config).then(() => {
+		console.log('DONE')
+	}).catch((e) => {
+		console.log('ERROR', e)
+	})
 }
 
 // Start script
@@ -94,22 +118,23 @@ workflow()
 
 Middlewares and router implementation.
 ```bash
-router.get('/',
-	//permissions middleware with allowed user roles as paramter
-	permissionMiddleware(['SUPER_ADMIN', 'ADMIN', 'USER']),
-	//validation middleware with Joi schema injection
-	schemaMiddleware(GetProfile.schema),
-	...)
+router.get(
+		'/users/:userID',
+		
+		// permissionMiddleware
+		permissionMiddleware(['SUPERADMIN', 'TEST']),
+		
+		validationMiddleware(requestSchema),
+		
+		// businessLogic
+		businessLogic
+	)
 
 //permissions middleware impelemntation
 export const permissionMiddleware = (allowPermissions: string[]) => function permission(req: Request, res: Response, next: NextFunction) {
-	....
+	...
 }
 
-//permissions middleware impelemntation
-export default (schema: any) => function validate(req: Request, res: Response, next: NextFunction) {
-...
-}
 ```
 
 
