@@ -77,7 +77,7 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 
 ```
 // imports
-import getSwagger from 'express-joi-to-swagger'
+import getSwagger from '@goodrequest/express-joi-to-swagger'
 import path from 'path'
 import app from './your-path-to-express-app'
 
