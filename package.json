@@ -9,7 +9,7 @@
   "author": "Goodrequest",
   "license": "MIT",
   "scripts": {
-    "prebublishOnly": "rm -rf dist && tsc --project tsconfig.build.json && copyfiles -f ./src/ui/index.html ./dist/ui",
+    "prepublishOnly": "rm -rf dist && tsc --project tsconfig.build.json && copyfiles -f ./src/ui/index.html ./dist/ui",
     "demo": "node -r ts-node/register demo/index.ts",
     "test": "jest --passWithNoTests"
   },
