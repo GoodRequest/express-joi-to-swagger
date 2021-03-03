@@ -3,7 +3,6 @@ import path from 'path'
 import { promisify } from 'util'
 import { v4 } from 'uuid'
 
-import * as os from 'os'
 import { CacheManager, ILocation } from './cache-amanger.class'
 import { Deferred } from './deffered.class'
 
@@ -95,10 +94,10 @@ export class SessionManager {
 		const scopes = properties.internalProperties.find((prop: any) => prop.name === '[[Scopes]]')
 		const functions = properties.internalProperties.find((prop: any) => prop.name === '[[FunctionLocation]]')
 		const script = this.scripts[functions.value.value.scriptId]
-		let importPath = script.url.replace('file:///', '')
+		let importPath = decodeURIComponent(script.url.replace('file:///', ''))
 
 		if (!path.isAbsolute(importPath)) {
-			const root = os.platform() === 'win32' ? `c:${path.sep}${path.sep}` : path.sep
+			const { root } = path.parse(process.cwd())
 			importPath = path.join(root, importPath)
 		}
 
