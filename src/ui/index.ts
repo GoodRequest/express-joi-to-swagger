@@ -5,7 +5,7 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin'
 
 export default (outputPath: string) => new Promise((resolve, reject) => {
 	webpack({
-		mode: 'production',
+		mode: 'development',
 		entry: {
 			app: path.join(__dirname, 'src.js'),
 		},
