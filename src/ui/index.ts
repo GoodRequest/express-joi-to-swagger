@@ -1,7 +1,6 @@
 import webpack from 'webpack'
 import path from 'path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import { CleanWebpackPlugin } from 'clean-webpack-plugin'
 
 export default (outputPath: string) => new Promise((resolve, reject) => {
 	webpack({
@@ -26,7 +25,6 @@ export default (outputPath: string) => new Promise((resolve, reject) => {
 			]
 		},
 		plugins: [
-			new CleanWebpackPlugin(),
 			new HtmlWebpackPlugin({
 				template: path.join(__dirname, 'index.html')
 			})
@@ -34,6 +32,7 @@ export default (outputPath: string) => new Promise((resolve, reject) => {
 		output: {
 			filename: '[name].bundle.js',
 			path: outputPath,
+			clean: true
 		}
 	}, (err: any, info: any) => {
 		if (err) {

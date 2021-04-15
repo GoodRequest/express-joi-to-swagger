@@ -19,6 +19,114 @@
 		}
 	},
 	"paths": {
+		"/api/v1/animals/": {
+			"get": {
+				"tags": [
+					"Animals"
+				],
+				"description": "PERMISSION: NO",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "successful operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"animals": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"id": {
+														"type": "integer",
+														"minimum": 1
+													},
+													"name": {
+														"type": "string",
+														"minLength": 1
+													},
+													"color": {
+														"type": "string",
+														"enum": [
+															"BLUE",
+															"PINK",
+															"RED"
+														]
+													}
+												},
+												"required": [
+													"id",
+													"name"
+												],
+												"additionalProperties": false
+											}
+										}
+									},
+									"additionalProperties": false
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Animals"
+				],
+				"description": "PERMISSION: NO",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "successful operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"message": {
+											"type": "string",
+											"minLength": 1
+										}
+									},
+									"required": [
+										"message"
+									],
+									"additionalProperties": false
+								}
+							}
+						}
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"name": {
+										"type": "string",
+										"minLength": 1
+									},
+									"color": {
+										"type": "string",
+										"enum": [
+											"BLUE",
+											"PINK",
+											"RED"
+										]
+									}
+								},
+								"required": [
+									"name"
+								]
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v1/users/{userID}": {
 			"get": {
 				"tags": [
