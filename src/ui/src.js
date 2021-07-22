@@ -28,5 +28,6 @@ SwaggerUI({
 	spec,
 	dom_id: '#swagger',
 	filter: true,
+	deepLinking: true,
 	plugins: [AdvancedFilterPlugin]
 })
