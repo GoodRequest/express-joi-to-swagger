@@ -4,7 +4,7 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 
 export default (outputPath: string) => new Promise((resolve, reject) => {
 	webpack({
-		mode: 'development',
+		mode: 'production',
 		entry: {
 			app: path.join(__dirname, 'src.js'),
 		},
@@ -30,7 +30,7 @@ export default (outputPath: string) => new Promise((resolve, reject) => {
 			})
 		],
 		output: {
-			filename: '[name].bundle.js',
+			filename: '[name].[contenthash].bundle.js',
 			path: outputPath,
 			clean: true
 		}
