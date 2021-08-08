@@ -24,7 +24,7 @@
 				"tags": [
 					"Animals"
 				],
-				"description": "PERMISSION: NO",
+				"summary": "PERMISSION: NO",
 				"parameters": [],
 				"responses": {
 					"200": {
@@ -74,7 +74,7 @@
 				"tags": [
 					"Animals"
 				],
-				"description": "PERMISSION: NO",
+				"summary": "PERMISSION: NO",
 				"parameters": [],
 				"responses": {
 					"200": {
@@ -130,7 +130,8 @@
 				"tags": [
 					"Users"
 				],
-				"description": "PERMISSION: [SUPERADMIN, TEST]\n\nThis is how to add swagger description for this endpoint",
+				"summary": "PERMISSION: [SUPERADMIN, TEST]",
+				"description": "This is how to add swagger description for this endpoint",
 				"parameters": [
 					{
 						"name": "userID",
