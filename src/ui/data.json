@@ -24,11 +24,10 @@
 				"tags": [
 					"Animals"
 				],
-				"description": "PERMISSION: NO",
+				"summary": "PERMISSION: NO",
 				"parameters": [],
 				"responses": {
 					"200": {
-						"description": "successful operation",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -75,11 +74,10 @@
 				"tags": [
 					"Animals"
 				],
-				"description": "PERMISSION: NO",
+				"summary": "PERMISSION: NO",
 				"parameters": [],
 				"responses": {
 					"200": {
-						"description": "successful operation",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -132,7 +130,8 @@
 				"tags": [
 					"Users"
 				],
-				"description": "PERMISSION: [SUPERADMIN, TEST]",
+				"summary": "PERMISSION: [SUPERADMIN, TEST]",
+				"description": "This is how to add swagger description for this endpoint",
 				"parameters": [
 					{
 						"name": "userID",
@@ -154,7 +153,6 @@
 				],
 				"responses": {
 					"200": {
-						"description": "successful operation",
 						"content": {
 							"application/json": {
 								"schema": {

@@ -136,12 +136,29 @@ export const permissionMiddleware = (allowPermissions: string[]) => function per
 }
 
 ```
+Adding description for endpoints.
+```bash
+const userEndpointDesc = 'This is how to add swagger description for this endpoint'
+
+export const requestSchema = Joi.object({
+	params: Joi.object({
+		userID: Joi.number()
+	}),
+	query: Joi.object({
+		search: Joi.string().required()
+	}),
+	body: Joi.object({
+		name: Joi.string().required()
+	})
+}).description(userEndpointDesc)
+
+```
 
 ## Result
 
 Generated SwaggerUI 
 
-![Generated SwaggerUI](demo/output-example.png)
+![Generated SwaggerUI](demo/example.png)
 
 
 ## Extra Benefits

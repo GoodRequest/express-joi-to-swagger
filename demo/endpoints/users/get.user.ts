@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import Joi from 'joi'
 
+const userEndpointDesc = 'This is how to add swagger description for this endpoint'
+
 export const requestSchema = Joi.object({
 	params: Joi.object({
 		userID: Joi.number()
@@ -11,7 +13,7 @@ export const requestSchema = Joi.object({
 	body: Joi.object({
 		name: Joi.string().required()
 	})
-})
+}).description(userEndpointDesc)
 
 export const responseSchema = Joi.object({
 	user: Joi.object({

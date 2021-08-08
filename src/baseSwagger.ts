@@ -171,7 +171,8 @@ export function getBaseMethod(
 	queryParameterSchema: any,
 	responses: any,
 	requestBody: any,
-	description: string
+	summary: string,
+	description?: string
 ): IPathMethods {
 	let requestBodyObject: any = null
 	if (requestBody) {
@@ -189,7 +190,7 @@ export function getBaseMethod(
 	return {
 		[method]: {
 			tags,
-			// summary: 'Finds Pets by status', // TODO: endpoint description
+			summary,
 			description,
 			parameters: [
 				...pathParameterArray,
@@ -219,12 +220,12 @@ interface SwaggerInput {
 	methods: SwaggerMethod[],
 }
 
-export type ResponseCode = 200 | 300 | 400 | 401 | 403 | 404
+export type ResponseCode = 200 | 300 | 400 | 401 | 403 | 404 | 409
 
 export const createResponse = (
 	responseSchema: any,
-	code: ResponseCode, // TODO dopisat dalsie relevantne kody
-	description: string = 'successful operation'
+	code: ResponseCode, // TODO: add more response codes
+	description?: string
 ) => ({
 	[code]: {
 		description,
@@ -308,6 +309,8 @@ export function getPathSwagger(swagger: SwaggerInput) {
 			}
 
 			const permissionDescriptions = getPermissionDescription(permissionObject)
+			const { description } = requestSwagger
+
 			return getBaseMethod(
 				method,
 				tags,
@@ -315,7 +318,8 @@ export function getPathSwagger(swagger: SwaggerInput) {
 				queryParameterArray,
 				responsesSwagger,
 				requestBody,
-				permissionDescriptions
+				permissionDescriptions,
+				description
 			)
 		} catch (e) {
 			console.log(`ERROR with method:${data.method} ${path}`, e)
