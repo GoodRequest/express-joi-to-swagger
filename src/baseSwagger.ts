@@ -219,12 +219,12 @@ interface SwaggerInput {
 	methods: SwaggerMethod[],
 }
 
-export type ResponseCode = 200 | 300 | 400 | 401 | 403 | 404
+export type ResponseCode = 200 | 300 | 400 | 401 | 403 | 404 | 409
 
 export const createResponse = (
 	responseSchema: any,
-	code: ResponseCode, // TODO dopisat dalsie relevantne kody
-	description: string = 'successful operation'
+	code: ResponseCode, // TODO: add more response codes
+	description?: string
 ) => ({
 	[code]: {
 		description,
@@ -308,6 +308,13 @@ export function getPathSwagger(swagger: SwaggerInput) {
 			}
 
 			const permissionDescriptions = getPermissionDescription(permissionObject)
+			const { description } = requestSwagger
+
+			const descriptions = [permissionDescriptions]
+			if (description) {
+				descriptions.push(description)
+			}
+
 			return getBaseMethod(
 				method,
 				tags,
@@ -315,7 +322,7 @@ export function getPathSwagger(swagger: SwaggerInput) {
 				queryParameterArray,
 				responsesSwagger,
 				requestBody,
-				permissionDescriptions
+				descriptions.join('\n\n')
 			)
 		} catch (e) {
 			console.log(`ERROR with method:${data.method} ${path}`, e)

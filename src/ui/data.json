@@ -28,7 +28,6 @@
 				"parameters": [],
 				"responses": {
 					"200": {
-						"description": "successful operation",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -79,7 +78,6 @@
 				"parameters": [],
 				"responses": {
 					"200": {
-						"description": "successful operation",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -132,7 +130,7 @@
 				"tags": [
 					"Users"
 				],
-				"description": "PERMISSION: [SUPERADMIN, TEST]",
+				"description": "PERMISSION: [SUPERADMIN, TEST]\n\nThis is how to add swagger description for this endpoint",
 				"parameters": [
 					{
 						"name": "userID",
@@ -154,7 +152,6 @@
 				],
 				"responses": {
 					"200": {
-						"description": "successful operation",
 						"content": {
 							"application/json": {
 								"schema": {
