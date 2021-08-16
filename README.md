@@ -75,7 +75,7 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 
 ## Usage example
 
-```
+```Typescript
 // imports
 import getSwagger from '@goodrequest/express-joi-to-swagger'
 import path from 'path'
@@ -117,7 +117,7 @@ workflow()
 
 
 Middlewares and router implementation.
-```bash
+```Typescript
 router.get(
 		'/users/:userID',
 		
@@ -137,7 +137,7 @@ export const permissionMiddleware = (allowPermissions: string[]) => function per
 
 ```
 Adding description for endpoints.
-```bash
+```Typescript
 const userEndpointDesc = 'This is how to add swagger description for this endpoint'
 
 export const requestSchema = Joi.object({
@@ -152,6 +152,38 @@ export const requestSchema = Joi.object({
 	})
 }).description(userEndpointDesc)
 
+```
+Top level request .alternatives() or .alternatives().try()..
+```Typescript
+export const requestSchema = Joi.object({
+    params: Joi.object(),
+    query: Joi.object(),
+    body: Joi.alternatives().try(
+        Joi.object().keys({
+            a: Joi.string(),
+            b: Joi.number()
+        }),
+        Joi.object().keys({
+            c: Joi.boolean(),
+            d: Joi.date()
+        })
+    )
+})
+
+```
+..displays request example as:
+```JSON
+{
+  "warning": ".alternatives() object - select 1 option only",
+  "option_0": {
+    "a": "string",
+    "b": 0
+  },
+  "option_1": {
+    "c": true,
+    "d": "2021-01-01T00:00:00.001Z"
+  }
+}
 ```
 
 ## Result

@@ -125,6 +125,121 @@
 				}
 			}
 		},
+		"/api/v1/animals/family": {
+			"post": {
+				"tags": [
+					"Animals"
+				],
+				"summary": "PERMISSION: NO",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"message": {
+											"type": "string",
+											"minLength": 1
+										}
+									},
+									"required": [
+										"message"
+									],
+									"additionalProperties": false
+								}
+							}
+						}
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"warning": {
+										"type": "string",
+										"enum": [
+											".alternatives() object - select 1 option only"
+										]
+									},
+									"option_0": {
+										"type": "object",
+										"properties": {
+											"name": {
+												"type": "string",
+												"minLength": 1
+											},
+											"animalFamily": {
+												"type": "string",
+												"enum": [
+													"CANINE"
+												],
+												"not": {
+													"enum": [
+														"FELINE"
+													]
+												}
+											},
+											"barkType": {
+												"type": "string",
+												"enum": [
+													"WOOF",
+													"BARK",
+													"AWOO"
+												]
+											}
+										},
+										"required": [
+											"name",
+											"animalFamily",
+											"barkType"
+										],
+										"additionalProperties": false
+									},
+									"option_1": {
+										"type": "object",
+										"properties": {
+											"name": {
+												"type": "string",
+												"minLength": 1
+											},
+											"animalFamily": {
+												"type": "string",
+												"enum": [
+													"FELINE"
+												],
+												"not": {
+													"enum": [
+														"CANINE"
+													]
+												}
+											},
+											"meowType": {
+												"type": "string",
+												"enum": [
+													"PURR",
+													"MEOW",
+													"HISS"
+												]
+											}
+										},
+										"required": [
+											"name",
+											"animalFamily",
+											"meowType"
+										],
+										"additionalProperties": false
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v1/users/{userID}": {
 			"get": {
 				"tags": [
