@@ -237,6 +237,20 @@ export const createResponse = (
 	}
 })
 
+const prepAlternativesArray = (alts: any[]) => alts.reduce(
+	(acc: any, curr: any, index: number) => {
+		acc[`option_${index}`] = curr
+		return acc
+	}, {
+		warning: {
+			type: 'string',
+			enum: [
+				'.alternatives() object - select 1 option only'
+			]
+		}
+	}
+)
+
 const getPermissionDescription = (permissions: string[]): string => {
 	const permissionsResult = 'PERMISSION:'
 	if (!isEmpty(permissions)) {
@@ -303,7 +317,9 @@ export function getPathSwagger(swagger: SwaggerInput) {
 			if (method !== 'get' && method !== 'delete') {
 				requestBody = {
 					type: 'object',
-					properties: requestSwagger.properties.body.properties,
+					properties: requestSwagger.properties.body.anyOf
+						? prepAlternativesArray(requestSwagger.properties.body.anyOf)
+						: requestSwagger.properties.body.properties,
 					required: requestSwagger.properties.body.required
 				}
 			}
