@@ -24,10 +24,12 @@
 				"tags": [
 					"Animals"
 				],
+				"security": [],
 				"summary": "PERMISSION: NO",
 				"parameters": [],
 				"responses": {
 					"200": {
+						"description": "Success response",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -74,10 +76,12 @@
 				"tags": [
 					"Animals"
 				],
+				"security": [],
 				"summary": "PERMISSION: NO",
 				"parameters": [],
 				"responses": {
 					"200": {
+						"description": "Success response",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -130,10 +134,12 @@
 				"tags": [
 					"Animals"
 				],
+				"security": [],
 				"summary": "PERMISSION: NO",
 				"parameters": [],
 				"responses": {
 					"200": {
+						"description": "Success response",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -245,6 +251,11 @@
 				"tags": [
 					"Users"
 				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
 				"summary": "PERMISSION: [SUPERADMIN, TEST]",
 				"description": "This is how to add swagger description for this endpoint",
 				"parameters": [
@@ -268,6 +279,7 @@
 				],
 				"responses": {
 					"200": {
+						"description": "Success response",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -303,5 +315,14 @@
 		"description": "Find out more about Swagger",
 		"url": "http://swagger.io"
 	},
-	"components": {}
+	"components": {
+		"securitySchemes": {
+			"bearerAuth": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT"
+			}
+		}
+	},
+	"security": []
 }

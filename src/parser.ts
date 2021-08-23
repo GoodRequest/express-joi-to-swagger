@@ -1,12 +1,27 @@
-import { Express, IRouter, IRoute } from 'express'
+import { Express, IRoute, IRouter } from 'express'
 import {
-	map, isNaN, startsWith, trimStart, filter, includes, isInteger, reduce, get, set, join, forEach, has, uniq, compact
+	compact,
+	filter,
+	forEach,
+	get,
+	has,
+	includes,
+	isInteger,
+	isNaN,
+	join,
+	map,
+	reduce,
+	set,
+	startsWith,
+	trimStart,
+	uniq
 } from 'lodash'
 import Joi, { Schema } from 'joi'
 // @ts-ignore
 import Values from 'joi/lib/values'
 import { locate } from './func-loc'
 import { ISwaggerInit } from './baseSwagger'
+import { AUTH_SCOPE } from './utils/authSchemes'
 
 const regexpExpressRegexp = /^\/\^\\\/(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\(\[\^\\\/]\+\?\)\)))\\\/.*/
 const expressRootRegexp = '/^\\/?(?=\\/|$)/i'
@@ -227,6 +242,7 @@ export const parseTags = (basePath: string[], path: string[], config: IConfig) =
 
 export const parseExpressRoute = async (route: IRoute, basePath: string, config: IConfig) => {
 	const endpoints = [] as any[]
+	let security: any = []
 
 	const pathArray = Array.isArray(route.path) ? route.path : [route.path]
 
@@ -241,8 +257,12 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 						closure: (config.permissions.closure === 'default' ? 'exports.default' : config.permissions.closure),
 						paramName: config.permissions.paramName
 					})
-				} else if (handle.name === config.businessLogicName) {
+				}
+				if (handle.name === config.businessLogicName) {
 					workflowHandlerPromise = locate(handle.handle)
+				}
+				if (config.swaggerInitInfo.security?.scope === AUTH_SCOPE.ENDPOINT && config.swaggerInitInfo.security?.authMiddlewareName === handle.name) {
+					security = [{ [config.swaggerInitInfo?.security.method]: [] }]
 				}
 			})
 			const permissions = [] as string[]
@@ -283,6 +303,7 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 			return {
 				method,
 				permissions,
+				security,
 				requestJoiSchema,
 				responses,
 				middlewares: getRouteMiddleware(route)
