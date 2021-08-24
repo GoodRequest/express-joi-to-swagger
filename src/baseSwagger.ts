@@ -1,6 +1,7 @@
 import joiToSwagger from 'joi-to-swagger'
 import Joi from 'joi'
 import { includes, isEmpty, map } from 'lodash'
+import getSecurityScheme, { AUTH_METHOD, AUTH_SCOPE, IAuthenticationSchemeConfig } from './utils/authSchemes'
 
 interface ExternalDocsS {
 	name?: string // Apache 2.0
@@ -75,7 +76,7 @@ interface IRequest {
 interface IComponents {
 	schemas: any,
 	requestBodies?: string,
-	securitySchemes?: string,
+	securitySchemes?: any,
 }
 
 interface IPathMethods {
@@ -90,6 +91,13 @@ interface IPath {
 	[key: string]: IPathMethods
 }
 
+interface ISecurity {
+	method: AUTH_METHOD,
+	config?: IAuthenticationSchemeConfig,
+	scope: AUTH_SCOPE,
+	authMiddlewareName?: string
+}
+
 export interface ISwagger {
 	openapi: string // '3.0.2'
 	servers: IServer[] // '3.0.2'
@@ -98,6 +106,7 @@ export interface ISwagger {
 	externalDocs: ExternalDocsS,
 	paths: IPath, // requests
 	components: IComponents
+	security: any
 }
 
 export const getPathSchema: any = (
@@ -113,6 +122,7 @@ export interface ISwaggerInit {
 	servers?: IServer[]
 	info?: IInfo
 	tags?: ITag[]
+	security?: ISecurity
 }
 
 export interface ISwaggerSchemaInput {
@@ -157,8 +167,13 @@ export function getSwaggerSchema(
 			url: 'http://swagger.io'
 		},
 		components: {
+
+			securitySchemes: swaggerInitI?.security ? {
+				...getSecurityScheme(swaggerInitI.security.method, swaggerInitI.security.config)
+			} : {},
 			schemas
-		}
+		},
+		security: swaggerInitI?.security?.scope === AUTH_SCOPE.GLOBAL ? [{ [swaggerInitI?.security.method]: [] }] : []
 	}
 }
 
@@ -167,6 +182,7 @@ export type methodType = 'get' | 'post' | 'patch' | 'delete'
 export function getBaseMethod(
 	method: methodType,
 	tags: string[],
+	security: any,
 	pathParameterArray: any,
 	queryParameterSchema: any,
 	responses: any,
@@ -190,6 +206,7 @@ export function getBaseMethod(
 	return {
 		[method]: {
 			tags,
+			security,
 			summary,
 			description,
 			parameters: [
@@ -212,12 +229,14 @@ interface SwaggerMethod {
 	responses: Response[],
 	requestJoiSchema?: any,
 	permissions?: any,
+	security: any
 }
 
 interface SwaggerInput {
 	path: string,
 	tags: string[],
 	methods: SwaggerMethod[],
+	security: any
 }
 
 export type ResponseCode = 200 | 300 | 400 | 401 | 403 | 404 | 409
@@ -228,7 +247,7 @@ export const createResponse = (
 	description?: string
 ) => ({
 	[code]: {
-		description,
+		description: description || 'Success response',
 		content: {
 			'application/json': {
 				schema: responseSchema
@@ -263,7 +282,7 @@ export function getPathSwagger(swagger: SwaggerInput) {
 	const {
 		path,
 		tags,
-		methods
+		methods,
 	} = swagger
 
 	const methodsSwaggerObjects = methods.map((data: SwaggerMethod) => {
@@ -272,7 +291,8 @@ export function getPathSwagger(swagger: SwaggerInput) {
 				method,
 				responses,
 				requestJoiSchema,
-				permissions: permissionObject
+				permissions: permissionObject,
+				security
 			} = data
 
 			const responsesSwagger = responses.map((response: Response) => {
@@ -330,6 +350,7 @@ export function getPathSwagger(swagger: SwaggerInput) {
 			return getBaseMethod(
 				method,
 				tags,
+				security,
 				pathParameterArray,
 				queryParameterArray,
 				responsesSwagger,

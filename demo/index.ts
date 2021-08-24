@@ -2,6 +2,7 @@ import path from 'path'
 import getSwagger from '../src'
 import app from './app'
 import { IConfig } from '../src/parser'
+import { AUTH_METHOD, AUTH_SCOPE } from '../src/utils/authSchemes'
 
 const config: IConfig = {
 	outputPath: path.join(__dirname, 'dist'),
@@ -18,6 +19,14 @@ const config: IConfig = {
 		info: {
 			description: 'Generated Store',
 			title: 'Test app'
+		},
+		security: {
+			method: AUTH_METHOD.BEARER,
+			config: {
+				bearerFormat: 'JWT'
+			},
+			scope: AUTH_SCOPE.ENDPOINT,
+			authMiddlewareName: 'authenticate'
 		}
 	},
 	tags: {}
