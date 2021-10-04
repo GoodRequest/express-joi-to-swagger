@@ -20,58 +20,6 @@
 	},
 	"paths": {
 		"/api/v1/animals/": {
-			"get": {
-				"tags": [
-					"Animals"
-				],
-				"security": [],
-				"summary": "PERMISSION: NO",
-				"parameters": [],
-				"responses": {
-					"200": {
-						"description": "Success response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"animals": {
-											"type": "array",
-											"items": {
-												"type": "object",
-												"properties": {
-													"id": {
-														"type": "integer",
-														"minimum": 1
-													},
-													"name": {
-														"type": "string",
-														"minLength": 1
-													},
-													"color": {
-														"type": "string",
-														"enum": [
-															"BLUE",
-															"PINK",
-															"RED"
-														]
-													}
-												},
-												"required": [
-													"id",
-													"name"
-												],
-												"additionalProperties": false
-											}
-										}
-									},
-									"additionalProperties": false
-								}
-							}
-						}
-					}
-				}
-			},
 			"post": {
 				"tags": [
 					"Animals"
@@ -123,6 +71,58 @@
 								"required": [
 									"name"
 								]
+							}
+						}
+					}
+				}
+			},
+			"get": {
+				"tags": [
+					"Animals"
+				],
+				"security": [],
+				"summary": "PERMISSION: NO",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Success response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"animals": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"id": {
+														"type": "integer",
+														"minimum": 1
+													},
+													"name": {
+														"type": "string",
+														"minLength": 1
+													},
+													"color": {
+														"type": "string",
+														"enum": [
+															"BLUE",
+															"PINK",
+															"RED"
+														]
+													}
+												},
+												"required": [
+													"id",
+													"name"
+												],
+												"additionalProperties": false
+											}
+										}
+									},
+									"additionalProperties": false
+								}
 							}
 						}
 					}
@@ -239,70 +239,6 @@
 										],
 										"additionalProperties": false
 									}
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/v1/users/{userID}": {
-			"get": {
-				"tags": [
-					"Users"
-				],
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"summary": "PERMISSION: [SUPERADMIN, TEST]",
-				"description": "This is how to add swagger description for this endpoint",
-				"parameters": [
-					{
-						"name": "userID",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "number",
-							"format": "float"
-						}
-					},
-					{
-						"name": "search",
-						"in": "query",
-						"schema": {
-							"type": "string"
-						},
-						"required": true
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Success response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"user": {
-											"type": "object",
-											"properties": {
-												"id": {
-													"type": "number",
-													"format": "float"
-												},
-												"name": {
-													"type": "string"
-												},
-												"surname": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false
-										}
-									},
-									"additionalProperties": false
 								}
 							}
 						}

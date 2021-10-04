@@ -50,7 +50,8 @@ export interface IConfig {
 		tagSeparator?: string,
 		versioning?: boolean,
 		versionSeparator?: string
-	}
+	},
+	filter?: string
 }
 
 /*
@@ -246,6 +247,11 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 
 	const pathArray = Array.isArray(route.path) ? route.path : [route.path]
 
+	const filterRegex = config.filter ? new RegExp(config.filter) : null
+
+	if (filterRegex && !filterRegex.test(`${basePath}/${route.path}`)) {
+		return []
+	}
 	const pathArrayPromises = map(pathArray, async (path) => {
 		const methodsPromises = getRouteMethods(route).map(async (method) => {
 			let permissionHandlerPromise: any
