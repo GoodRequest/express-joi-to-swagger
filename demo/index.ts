@@ -29,7 +29,8 @@ const config: IConfig = {
 			authMiddlewareName: 'authenticate'
 		}
 	},
-	tags: {}
+	tags: {},
+	filter: '.*animals.*'
 }
 
 // Use case example
