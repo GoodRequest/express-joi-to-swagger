@@ -4,6 +4,9 @@ import Joi from 'joi'
 const userEndpointDesc = 'This is how to add swagger description for this endpoint'
 
 export const requestSchema = Joi.object({
+	headers: Joi.object().keys({
+		language: Joi.string().valid('sk', 'en')
+	}).options({ allowUnknown: true }),
 	params: Joi.object({
 		userID: Joi.number()
 	}),

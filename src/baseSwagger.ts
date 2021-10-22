@@ -183,6 +183,7 @@ export function getBaseMethod(
 	method: methodType,
 	tags: string[],
 	security: any,
+	headerParameterArray: any,
 	pathParameterArray: any,
 	queryParameterSchema: any,
 	responses: any,
@@ -210,6 +211,7 @@ export function getBaseMethod(
 			summary,
 			description,
 			parameters: [
+				...headerParameterArray,
 				...pathParameterArray,
 				...queryParameterSchema
 			],
@@ -311,23 +313,32 @@ export function getPathSwagger(swagger: SwaggerInput) {
 			const requestSchema = requestJoiSchema || Joi.object().keys({
 				body: Joi.object(),
 				query: Joi.object(),
-				params: Joi.object()
+				params: Joi.object(),
+				headers: Joi.object()
 			})
 
 			const { swagger: requestSwagger } = joiToSwagger(requestSchema, null)
-			const queryParameterArray = map(requestSwagger.properties.query.properties, (schema, name) => ({
+
+			const headerParameterArray = map(requestSwagger.properties.headers?.properties, (schema, name) => ({
+				name,
+				in: 'header',
+				schema,
+				required: includes(requestSwagger.properties.headers.required, name)
+			})) || []
+
+			const queryParameterArray = map(requestSwagger.properties.query?.properties, (schema, name) => ({
 				name,
 				in: 'query',
 				schema,
 				required: includes(requestSwagger.properties.query.required, name)
-			}))
+			})) || []
 
-			const pathParameterArray = map(requestSwagger.properties.params.properties, (schema, name) => ({
+			const pathParameterArray = map(requestSwagger.properties.params?.properties, (schema, name) => ({
 				name,
 				in: 'path',
 				required: true,
 				schema
-			}))
+			})) || []
 
 			let requestBody: {
 				type: string,
@@ -351,6 +362,7 @@ export function getPathSwagger(swagger: SwaggerInput) {
 				method,
 				tags,
 				security,
+				headerParameterArray,
 				pathParameterArray,
 				queryParameterArray,
 				responsesSwagger,
