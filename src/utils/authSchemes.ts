@@ -15,13 +15,13 @@ enum API_KEY_LOCATION {
 }
 
 export interface IAuthenticationSchemeConfig {
-	in?: API_KEY_LOCATION,
-	name?: string,
+	in?: API_KEY_LOCATION
+	name?: string
 	bearerFormat?: string
 }
 
 export enum AUTH_METHOD {
-	BASIC= 'basicAuth',
+	BASIC = 'basicAuth',
 	BEARER = 'bearerAuth',
 	API_KEY = 'ApiKeyAuth'
 }

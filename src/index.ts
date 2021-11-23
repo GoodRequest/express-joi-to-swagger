@@ -4,10 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import generateUi from './ui'
 import parser, { IConfig } from './parser'
-import {
-	getPathSwagger,
-	getSwaggerSchema
-} from './baseSwagger'
+import { getPathSwagger, getSwaggerSchema } from './baseSwagger'
 
 const getSwagger = async (app: Express, config: IConfig) => {
 	const endpoints = await parser(app, config)
@@ -28,13 +25,25 @@ const getSwagger = async (app: Express, config: IConfig) => {
 	if (!fs.existsSync(outputPath)) {
 		fs.mkdirSync(outputPath)
 	}
-
 	if (config.generateUI) {
-		fs.writeFileSync(path.join(__dirname, 'ui', 'data.json'), JSON.stringify(result, null, '\t'))
+		await new Promise((resolve, reject) => {
+			fs.writeFile(path.join(__dirname, 'ui', 'data.json'), JSON.stringify(result, null, '\t'), (err) => {
+				if (err) {
+					return reject(err)
+				}
+				return resolve(true)
+			})
+		})
 		await generateUi(outputPath)
-	} else {
-		fs.writeFileSync(path.join(outputPath, 'data.json'), JSON.stringify(result, null, '\t'))
 	}
+	await new Promise((resolve, reject) => {
+		fs.writeFile(path.join(outputPath, 'data.json'), JSON.stringify(result, null, '\t'), (err) => {
+			if (err) {
+				return reject(err)
+			}
+			return resolve(true)
+		})
+	})
 }
 
 export default getSwagger

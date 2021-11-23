@@ -14,12 +14,12 @@ export interface ILocateOptions {
 }
 
 export class SessionManager {
-	private cache: CacheManager = new CacheManager();
-	private session: (Session | undefined);
-	private post$: any;
+	private cache: CacheManager = new CacheManager()
+	private session: Session | undefined
+	private post$: any
 	private scripts: {
-		[scriptId: string]: Debugger.ScriptParsedEventDataType;
-	} = {};
+		[scriptId: string]: Debugger.ScriptParsedEventDataType
+	} = {}
 
 	public async clean(): Promise<boolean> {
 		if (!this.session) {
@@ -27,7 +27,7 @@ export class SessionManager {
 		}
 
 		await this.post$('Runtime.releaseObjectGroup', {
-			objectGroup: PREFIX,
+			objectGroup: PREFIX
 		})
 
 		this.session.disconnect()
@@ -83,12 +83,12 @@ export class SessionManager {
 		// Evaluate the expression
 		const evaluated = await this.post$('Runtime.evaluate', {
 			expression: `global['${PREFIX}']['${uuid}']`,
-			objectGroup: PREFIX,
+			objectGroup: PREFIX
 		})
 
 		// Get the function properties
 		const properties = await this.post$('Runtime.getProperties', {
-			objectId: evaluated.result.objectId,
+			objectId: evaluated.result.objectId
 		})
 		// Get the function scopes
 		const scopes = properties.internalProperties.find((prop: any) => prop.name === '[[Scopes]]')
@@ -104,7 +104,7 @@ export class SessionManager {
 		let resultProperties = []
 		if (opts?.closure) {
 			const properties2 = await this.post$('Runtime.getProperties', {
-				objectId: scopes.value.objectId,
+				objectId: scopes.value.objectId
 			})
 
 			const closure = `Closure (${opts.closure})`
@@ -115,7 +115,7 @@ export class SessionManager {
 			}
 
 			const properties3 = await this.post$('Runtime.getProperties', {
-				objectId: properties2Object.value.objectId,
+				objectId: properties2Object.value.objectId
 			})
 
 			const properties3Object = properties3.result.find((el: any) => el.name === opts.paramName)
