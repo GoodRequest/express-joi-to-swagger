@@ -1,13 +1,12 @@
+/* eslint-disable max-classes-per-file */
 import * as fs from 'fs'
-import {
-	createResponse, ISwagger, methodType, ResponseCode
-} from '../baseSwagger'
+import { createResponse, ISwagger, methodType, ResponseCode } from '../baseSwagger'
 import { IConfig } from '../parser'
 
 export interface IResponse {
 	joiSchema: any
-	code: ResponseCode,
-	description?: string,
+	code: ResponseCode
+	description?: string
 }
 
 export class PathEditable {

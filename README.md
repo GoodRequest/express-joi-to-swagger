@@ -43,7 +43,7 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 
 | Name										| Type   		| Required 			  |Description																			  						|
 | ------------------------------------------|---------------|:----------------------:|---------------------------------------------------------------------------------------------------- 			|
-| **outputPath**							| string  		|  ✅  | Path to directory where output files (JSON if generateUI == false) should be created. 														                      						|
+| **outputPath**							| string  		|  ✅  | Path to directory where output JSON file should be created. 														                      						|
 | **generateUI**							| boolean 		|  ✅  | Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated.					                                                  						|
 | **permissions**							| object  		|  ❌  | Configuration parameters for parsing permissions.
 | **permissions**.middlewareName			| string  		|  ✅  | Name of the middleware responsible for handling API permissions.													                              						|
@@ -225,7 +225,6 @@ Feel free to check following #TODO ideas we have:
 | #1	|      @all 	| create tests														                      						|
 | #2	|      @all		| update to new Open API after release 3.1.0 fix issue https://github.com/OAI/OpenAPI-Specification/pull/2117								                                                  						|
 | #3	|      @all  	| sync with branch v14 													                              						|
-| #4	|      @all  	| implement search in generated UI 													                              						|
 
 
 ## Credits
