@@ -1,6 +1,6 @@
 {
   "name": "@goodrequest/express-joi-to-swagger",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
