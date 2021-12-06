@@ -1,6 +1,6 @@
 import joiToSwagger from 'joi-to-swagger'
 import Joi from 'joi'
-import { includes, isEmpty, map } from 'lodash'
+import { includes, isEmpty, map, camelCase } from 'lodash'
 import getSecurityScheme, { AUTH_METHOD, AUTH_SCOPE, IAuthenticationSchemeConfig } from './utils/authSchemes'
 
 interface ExternalDocsS {
@@ -108,12 +108,6 @@ export interface ISwagger {
 	security: any
 }
 
-export const getPathSchema: any = (pathName: string, methodsOfPaths: IPathMethods) => ({
-	[pathName]: {
-		...methodsOfPaths
-	}
-})
-
 export interface ISwaggerInit {
 	servers?: IServer[]
 	info?: IInfo
@@ -180,6 +174,7 @@ export function getBaseMethod(
 	responses: any,
 	requestBody: any,
 	summary: string,
+	operationId: string,
 	description?: string
 ): IPathMethods {
 	let requestBodyObject: any = null
@@ -200,6 +195,7 @@ export function getBaseMethod(
 			tags,
 			security,
 			summary,
+			operationId,
 			description,
 			parameters: [...headerParameterArray, ...pathParameterArray, ...queryParameterSchema],
 			responses,
@@ -340,6 +336,7 @@ export function getPathSwagger(swagger: SwaggerInput) {
 
 				const permissionDescriptions = getPermissionDescription(permissionObject)
 				const { description } = requestSwagger
+				const operationId = camelCase(`${method}${path}`)
 
 				return getBaseMethod(
 					method,
@@ -351,6 +348,7 @@ export function getPathSwagger(swagger: SwaggerInput) {
 					responsesSwagger,
 					requestBody,
 					permissionDescriptions,
+					operationId,
 					description
 				)
 			} catch (e) {
@@ -365,6 +363,9 @@ export function getPathSwagger(swagger: SwaggerInput) {
 			}),
 			{}
 		)
-
-	return getPathSchema(path, methodsSwaggerObjects)
+	return {
+		[path]: {
+			...methodsSwaggerObjects
+		}
+	}
 }

@@ -26,6 +26,7 @@
 				],
 				"security": [],
 				"summary": "PERMISSION: NO",
+				"operationId": "postApiV1Animals",
 				"parameters": [],
 				"responses": {
 					"200": {
@@ -83,6 +84,7 @@
 				],
 				"security": [],
 				"summary": "PERMISSION: NO",
+				"operationId": "getApiV1Animals",
 				"parameters": [],
 				"responses": {
 					"200": {
@@ -137,6 +139,7 @@
 				],
 				"security": [],
 				"summary": "PERMISSION: NO",
+				"operationId": "postApiV1AnimalsFamily",
 				"parameters": [],
 				"responses": {
 					"200": {
