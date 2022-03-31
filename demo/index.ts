@@ -4,6 +4,8 @@ import app from './app'
 import { IConfig } from '../src/parser'
 import { AUTH_METHOD, AUTH_SCOPE } from '../src/utils/authSchemes'
 
+const mockTranslateFn = (v: any) => v
+
 const config: IConfig = {
 	outputPath: path.join(__dirname, 'dist'),
 	generateUI: true,
@@ -13,6 +15,7 @@ const config: IConfig = {
 		paramName: 'allowPermissions'
 	},
 	requestSchemaName: 'requestSchema',
+	requestSchemaParams: [mockTranslateFn],
 	responseSchemaName: 'responseSchema',
 	businessLogicName: 'businessLogic',
 	swaggerInitInfo: {
@@ -30,7 +33,7 @@ const config: IConfig = {
 		}
 	},
 	tags: {},
-	filter: '.*animals.*'
+	filter: '.*users.*'
 }
 
 // Use case example

@@ -51,6 +51,8 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 | **permissions**.paramName					| string  		|  ✅  | Name of the parameter containing permissions passed to middleware.													                              						|
 | **requestSchemaName**						| string  		|  ❌  | Name of the Joi schema object defining request structure.     |
 | **responseSchemaName**					| string  		|  ❌  | Name of the Joi schema object defining response structure.     |
+| **requestSchemaParams**					| any[]			|  ❌  | Param for ability to pass mock params for requestSchema			|
+| **responseSchemaParams**					| any[]			|  ❌  | Param for ability to pass mock params for responseSchema			|
 | **businessLogicName**						| string  		|  ✅  | Name of the function responsible for handling business logic of the request.     |
 | **swaggerInitInfo**						| ISwaggerInit 	|  ❌  | Swagger initial information.      |
 | **swaggerInitInfo**.servers				| IServer[] 	|  ❌  | List of API servers     |
@@ -91,6 +93,7 @@ const config: IConfig = {
 		paramName: 'allowPermissions'
 	},
 	requestSchemaName: 'requestSchema',
+	requestSchemaParams: [mockFn],
 	responseSchemaName: 'responseSchema',
 	businessLogicName: 'businessLogic',
 	swaggerInitInfo: {

@@ -21,7 +21,9 @@ export interface IConfig {
 		paramName: string
 	}
 	requestSchemaName?: string
+	requestSchemaParams?: any[]
 	responseSchemaName?: string
+	responseSchemaParams?: any[]
 	businessLogicName: string
 	swaggerInitInfo?: ISwaggerInit
 	tags?: {
@@ -278,13 +280,15 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 				if (has(workflow, config.requestSchemaName)) {
 					requestJoiSchema = get(workflow, config.requestSchemaName)
 					if (typeof requestJoiSchema === 'function') {
-						requestJoiSchema = requestJoiSchema()
+						const params = config.requestSchemaParams || []
+						requestJoiSchema = requestJoiSchema(...params)
 					}
 				}
 				if (has(workflow, config.responseSchemaName)) {
 					let outputJoiSchema = get(workflow, config.responseSchemaName)
 					if (typeof outputJoiSchema === 'function') {
-						outputJoiSchema = outputJoiSchema()
+						const params = config.responseSchemaParams || []
+						outputJoiSchema = outputJoiSchema(...params)
 					}
 					responses.push({
 						outputJoiSchema,

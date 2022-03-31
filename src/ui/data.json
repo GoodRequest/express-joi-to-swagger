@@ -19,73 +19,50 @@
 		}
 	},
 	"paths": {
-		"/api/v1/animals/": {
-			"post": {
-				"tags": [
-					"Animals"
-				],
-				"security": [],
-				"summary": "PERMISSION: NO",
-				"operationId": "postApiV1Animals",
-				"parameters": [],
-				"responses": {
-					"200": {
-						"description": "Success response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"message": {
-											"type": "string",
-											"minLength": 1
-										}
-									},
-									"required": [
-										"message"
-									],
-									"additionalProperties": false
-								}
-							}
-						}
-					}
-				},
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "object",
-								"properties": {
-									"name": {
-										"type": "string",
-										"minLength": 1,
-										"example": "This is name"
-									},
-									"color": {
-										"type": "string",
-										"enum": [
-											"BLUE",
-											"PINK",
-											"RED"
-										]
-									}
-								},
-								"required": [
-									"name"
-								]
-							}
-						}
-					}
-				}
-			},
+		"/api/v1/users/{userID}": {
 			"get": {
 				"tags": [
-					"Animals"
+					"Users"
 				],
-				"security": [],
-				"summary": "PERMISSION: NO",
-				"operationId": "getApiV1Animals",
-				"parameters": [],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"summary": "PERMISSION: [SUPERADMIN, TEST]",
+				"operationId": "getApiV1UsersUserId",
+				"description": "This is how to add swagger description for this endpoint",
+				"parameters": [
+					{
+						"name": "language",
+						"in": "header",
+						"schema": {
+							"type": "string",
+							"enum": [
+								"sk",
+								"en"
+							]
+						},
+						"required": false
+					},
+					{
+						"name": "userID",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "number",
+							"format": "float"
+						}
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"required": true
+					}
+				],
 				"responses": {
 					"200": {
 						"description": "Success response",
@@ -94,155 +71,24 @@
 								"schema": {
 									"type": "object",
 									"properties": {
-										"animals": {
-											"type": "array",
-											"items": {
-												"type": "object",
-												"properties": {
-													"id": {
-														"type": "integer",
-														"minimum": 1
-													},
-													"name": {
-														"type": "string",
-														"minLength": 1
-													},
-													"color": {
-														"type": "string",
-														"enum": [
-															"BLUE",
-															"PINK",
-															"RED"
-														]
-													}
+										"user": {
+											"type": "object",
+											"properties": {
+												"id": {
+													"type": "number",
+													"format": "float"
 												},
-												"required": [
-													"id",
-													"name"
-												],
-												"additionalProperties": false
-											}
+												"name": {
+													"type": "string"
+												},
+												"surname": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false
 										}
 									},
 									"additionalProperties": false
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/v1/animals/family": {
-			"post": {
-				"tags": [
-					"Animals"
-				],
-				"security": [],
-				"summary": "PERMISSION: NO",
-				"operationId": "postApiV1AnimalsFamily",
-				"parameters": [],
-				"responses": {
-					"200": {
-						"description": "Success response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"message": {
-											"type": "string",
-											"minLength": 1
-										}
-									},
-									"required": [
-										"message"
-									],
-									"additionalProperties": false
-								}
-							}
-						}
-					}
-				},
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "object",
-								"properties": {
-									"warning": {
-										"type": "string",
-										"enum": [
-											".alternatives() object - select 1 option only"
-										]
-									},
-									"option_0": {
-										"type": "object",
-										"properties": {
-											"name": {
-												"type": "string",
-												"minLength": 1
-											},
-											"animalFamily": {
-												"type": "string",
-												"enum": [
-													"CANINE"
-												],
-												"not": {
-													"enum": [
-														"FELINE"
-													]
-												}
-											},
-											"barkType": {
-												"type": "string",
-												"enum": [
-													"WOOF",
-													"BARK",
-													"AWOO"
-												]
-											}
-										},
-										"required": [
-											"name",
-											"animalFamily",
-											"barkType"
-										],
-										"additionalProperties": false
-									},
-									"option_1": {
-										"type": "object",
-										"properties": {
-											"name": {
-												"type": "string",
-												"minLength": 1
-											},
-											"animalFamily": {
-												"type": "string",
-												"enum": [
-													"FELINE"
-												],
-												"not": {
-													"enum": [
-														"CANINE"
-													]
-												}
-											},
-											"meowType": {
-												"type": "string",
-												"enum": [
-													"PURR",
-													"MEOW",
-													"HISS"
-												]
-											}
-										},
-										"required": [
-											"name",
-											"animalFamily",
-											"meowType"
-										],
-										"additionalProperties": false
-									}
 								}
 							}
 						}

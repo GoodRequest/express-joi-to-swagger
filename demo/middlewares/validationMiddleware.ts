@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { Request, Response, NextFunction } from 'express'
 import { Schema } from 'joi'
 
@@ -6,7 +5,7 @@ const options = {
 	abortEarly: false
 }
 
-export default (schema: Schema) => function validate(req: Request, res: Response, next: NextFunction) {
+export default (schema: Schema | ((translateFn: any) => Schema)) => function validate(req: Request, res: Response, next: NextFunction) {
 	if (!schema) {
 		throw new Error('Validation schema is not provided')
 	}
@@ -18,7 +17,15 @@ export default (schema: Schema) => function validate(req: Request, res: Response
 		}
 	})
 
-	const result = schema.validate({ query, body, params }, options)
+	let resultSchema: Schema = null
+		if (typeof schema === 'function') {
+			const translateFn = () => {}
+			resultSchema = schema(translateFn)
+		} else {
+			resultSchema = schema
+		}
+
+	const result = resultSchema.validate({ query, body, params }, options)
 	if (result.error) {
 		throw new Error(result.error.details.toString())
 	}

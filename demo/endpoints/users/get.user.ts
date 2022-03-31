@@ -3,10 +3,10 @@ import Joi from 'joi'
 
 const userEndpointDesc = 'This is how to add swagger description for this endpoint'
 
-export const requestSchema = Joi.object({
+export const requestSchema = (translateFn: any) => Joi.object({
 	headers: Joi.object().keys({
 		language: Joi.string().valid('sk', 'en')
-	}).options({ allowUnknown: true }),
+	}).options({ allowUnknown: true }).example(translateFn('example translate')),
 	params: Joi.object({
 		userID: Joi.number()
 	}),
