@@ -13,14 +13,11 @@ const getSwagger = async (app: Express, config: IConfig) => {
 	forEach(endpoints, (endpoint) => {
 		resultSwagger = {
 			...resultSwagger,
-			...getPathSwagger(endpoint)
+			...getPathSwagger(endpoint, config)
 		}
 	})
 
-	const result = getSwaggerSchema({
-		paths: resultSwagger,
-		swaggerInitI: config.swaggerInitInfo
-	})
+	const result = getSwaggerSchema(resultSwagger, config)
 	const outputPath = config.outputPath || process.cwd()
 	if (!fs.existsSync(outputPath)) {
 		fs.mkdirSync(outputPath)

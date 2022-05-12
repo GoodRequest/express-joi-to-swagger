@@ -3,6 +3,9 @@ import Joi from 'joi'
 import { includes, isEmpty, map, camelCase } from 'lodash'
 import getSecurityScheme, { AUTH_METHOD, AUTH_SCOPE, IAuthenticationSchemeConfig } from './utils/authSchemes'
 
+/* eslint-disable import/no-cycle */
+import { IConfig } from './parser'
+
 interface ExternalDocsS {
 	name?: string // Apache 2.0
 	url: string // http://www.apache.org/licenses/LICENSE-2.0.html
@@ -115,50 +118,44 @@ export interface ISwaggerInit {
 	security?: ISecurity
 }
 
-export interface ISwaggerSchemaInput {
-	paths: IPath
-	schemas?: any
-	swaggerInitI?: ISwaggerInit
-}
-
-export function getSwaggerSchema(input: ISwaggerSchemaInput): ISwagger {
-	const { schemas, paths, swaggerInitI } = input
+export function getSwaggerSchema(paths: IPath, config: IConfig): ISwagger {
+	const { swaggerInitInfo } = config
 
 	return {
 		openapi: '3.0.3',
-		servers: swaggerInitI?.servers || [
+		servers: swaggerInitInfo?.servers || [
 			{
 				url: 'localhost:8080'
 			}
 		],
 		info: {
-			description: swaggerInitI?.info?.description || 'This is a sample Pet Store',
-			version: swaggerInitI?.info?.version || '1.0.6-SNAPSHOT',
-			title: swaggerInitI?.info?.title || 'Swagger Petstore - OpenAPI 3.0',
-			termsOfService: swaggerInitI?.info?.termsOfService || 'http://swagger.io/terms/',
-			contact: swaggerInitI?.info?.contact || {
+			description: swaggerInitInfo?.info?.description || 'This is a sample Pet Store',
+			version: swaggerInitInfo?.info?.version || '1.0.6-SNAPSHOT',
+			title: swaggerInitInfo?.info?.title || 'Swagger Petstore - OpenAPI 3.0',
+			termsOfService: swaggerInitInfo?.info?.termsOfService || 'http://swagger.io/terms/',
+			contact: swaggerInitInfo?.info?.contact || {
 				email: 'apiteam@swagger.io'
 			},
-			license: swaggerInitI?.info?.license || {
+			license: swaggerInitInfo?.info?.license || {
 				name: 'Apache 2.0',
 				url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 			}
 		},
-		tags: swaggerInitI?.tags,
+		tags: swaggerInitInfo?.tags,
 		paths,
 		externalDocs: {
 			description: 'Find out more about Swagger',
 			url: 'http://swagger.io'
 		},
 		components: {
-			securitySchemes: swaggerInitI?.security
+			securitySchemes: swaggerInitInfo?.security
 				? {
-						...getSecurityScheme(swaggerInitI.security.method, swaggerInitI.security.config)
+						...getSecurityScheme(swaggerInitInfo.security.method, swaggerInitInfo.security.config)
 				  }
 				: {},
-			schemas
+			schemas: undefined
 		},
-		security: swaggerInitI?.security?.scope === AUTH_SCOPE.GLOBAL ? [{ [swaggerInitI?.security.method]: [] }] : []
+		security: swaggerInitInfo?.security?.scope === AUTH_SCOPE.GLOBAL ? [{ [swaggerInitInfo?.security.method]: [] }] : []
 	}
 }
 
@@ -263,7 +260,7 @@ const getPermissionDescription = (permissions: string[]): string => {
 	return `${permissionsResult} NO`
 }
 
-export function getPathSwagger(swagger: SwaggerInput) {
+export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 	const { path, tags, methods } = swagger
 
 	const methodsSwaggerObjects = methods
@@ -334,7 +331,8 @@ export function getPathSwagger(swagger: SwaggerInput) {
 					}
 				}
 
-				const permissionDescriptions = getPermissionDescription(permissionObject)
+				// Print permission label only if is define in config
+				const permissionDescriptions = config.permissions ? getPermissionDescription(permissionObject) : ''
 				const { description } = requestSwagger
 				const operationId = camelCase(`${method}${path}`)
 
