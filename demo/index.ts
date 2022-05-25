@@ -24,10 +24,14 @@ const config: IConfig = {
 			title: 'Test app'
 		},
 		security: {
-			method: AUTH_METHOD.BEARER,
-			config: {
-				bearerFormat: 'JWT'
-			},
+			methods: [{
+				name: AUTH_METHOD.BASIC
+			}, {
+				name: AUTH_METHOD.BEARER,
+				config: {
+					bearerFormat: 'JWT'
+				}
+			}],
 			scope: AUTH_SCOPE.ENDPOINT,
 			authMiddlewareName: 'authenticate'
 		}

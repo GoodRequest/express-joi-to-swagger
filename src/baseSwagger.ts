@@ -1,6 +1,7 @@
 import joiToSwagger from 'joi-to-swagger'
 import Joi from 'joi'
 import { includes, isEmpty, map, camelCase } from 'lodash'
+// eslint-disable-next-line import/no-cycle
 import getSecurityScheme, { AUTH_METHOD, AUTH_SCOPE, IAuthenticationSchemeConfig } from './utils/authSchemes'
 
 /* eslint-disable import/no-cycle */
@@ -93,9 +94,13 @@ interface IPath {
 	[key: string]: IPathMethods
 }
 
-interface ISecurity {
-	method: AUTH_METHOD
+export interface ISecurityMethod {
+	name: AUTH_METHOD
 	config?: IAuthenticationSchemeConfig
+}
+
+export interface ISecurity {
+	methods: ISecurityMethod[]
 	scope: AUTH_SCOPE
 	authMiddlewareName?: string
 }
@@ -148,14 +153,10 @@ export function getSwaggerSchema(paths: IPath, config: IConfig): ISwagger {
 			url: 'http://swagger.io'
 		},
 		components: {
-			securitySchemes: swaggerInitInfo?.security
-				? {
-						...getSecurityScheme(swaggerInitInfo.security.method, swaggerInitInfo.security.config)
-				  }
-				: {},
+			securitySchemes: swaggerInitInfo?.security ? getSecurityScheme(swaggerInitInfo.security.methods) : {},
 			schemas: undefined
 		},
-		security: swaggerInitInfo?.security?.scope === AUTH_SCOPE.GLOBAL ? [{ [swaggerInitInfo?.security.method]: [] }] : []
+		security: swaggerInitInfo?.security?.scope === AUTH_SCOPE.GLOBAL ? map(swaggerInitInfo?.security?.methods, (method) => ({ [method.name]: [] })) : []
 	}
 }
 

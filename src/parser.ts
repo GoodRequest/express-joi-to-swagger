@@ -4,7 +4,9 @@ import Joi, { Schema } from 'joi'
 // @ts-ignore
 import Values from 'joi/lib/values'
 import { locate } from './func-loc'
+// eslint-disable-next-line import/no-cycle
 import { ISwaggerInit } from './baseSwagger'
+// eslint-disable-next-line import/no-cycle
 import { AUTH_SCOPE } from './utils/authSchemes'
 
 const regexpExpressRegexp = /^\/\^\\\/(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\(\[\^\\\/]\+\?\)\)))\\\/.*/
@@ -259,7 +261,7 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 					workflowHandlerPromise = locate(handle.handle)
 				}
 				if (config.swaggerInitInfo.security?.scope === AUTH_SCOPE.ENDPOINT && config.swaggerInitInfo.security?.authMiddlewareName === handle.name) {
-					security = [{ [config.swaggerInitInfo?.security.method]: [] }]
+					security = map(config.swaggerInitInfo?.security?.methods, (methodName) => ({ [methodName.name]: [] }))
 				}
 			})
 			const permissions = [] as string[]

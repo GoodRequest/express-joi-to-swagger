@@ -1,3 +1,7 @@
+import { forEach } from 'lodash'
+// eslint-disable-next-line import/no-cycle
+import { ISecurityMethod } from '../baseSwagger'
+
 enum AUTH_TYPE {
 	HTTP = 'http',
 	API_KEY = 'apiKey'
@@ -31,35 +35,38 @@ export enum AUTH_SCOPE {
 	ENDPOINT = 'endpoint'
 }
 
-export default (method: AUTH_METHOD, config?: IAuthenticationSchemeConfig) => {
-	switch (method) {
-		case AUTH_METHOD.BASIC:
-			return {
+export default (methods: ISecurityMethod[]) => {
+	let result = {}
+
+	forEach(methods, (method) => {
+		if (method.name === AUTH_METHOD.BASIC) {
+			result = {
+				...result,
 				[AUTH_METHOD.BASIC]: {
 					type: AUTH_TYPE.HTTP,
 					scheme: AUTH_SCHEME.BASIC
 				}
 			}
-		case AUTH_METHOD.BEARER:
-			return {
+		} else if (method.name === AUTH_METHOD.BEARER) {
+			result = {
+				...result,
 				[AUTH_METHOD.BEARER]: {
 					type: AUTH_TYPE.HTTP,
 					scheme: AUTH_SCHEME.BEARER,
-					bearerFormat: config?.bearerFormat
+					bearerFormat: method.config?.bearerFormat
 				}
 			}
-		case AUTH_METHOD.API_KEY:
-			if (!config.in || !config.name) {
-				return {}
-			}
-			return {
+		} else if (method.name === AUTH_METHOD.API_KEY) {
+			result = {
+				...result,
 				[AUTH_METHOD.API_KEY]: {
 					type: AUTH_TYPE.API_KEY,
-					in: config.in,
-					name: config.name
+					in: method.config.in,
+					name: method.config.name
 				}
 			}
-		default:
-			return {}
-	}
+		}
+	})
+
+	return result
 }
