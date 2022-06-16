@@ -9,11 +9,11 @@ const mockTranslateFn = (v: any) => v
 const config: IConfig = {
 	outputPath: path.join(__dirname, 'dist'),
 	generateUI: true,
-	permissions: {
+	permissions: [{
 		middlewareName: 'permission',
 		closure: 'permissionMiddleware',
 		paramName: 'allowPermissions'
-	},
+	}],
 	requestSchemaName: 'requestSchema',
 	requestSchemaParams: [mockTranslateFn],
 	responseSchemaName: 'responseSchema',

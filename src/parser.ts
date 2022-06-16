@@ -8,6 +8,7 @@ import { locate } from './func-loc'
 import { ISwaggerInit } from './baseSwagger'
 // eslint-disable-next-line import/no-cycle
 import { AUTH_SCOPE } from './utils/authSchemes'
+import { ILocation } from './func-loc/cache-amanger.class'
 
 const regexpExpressRegexp = /^\/\^\\\/(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\(\[\^\\\/]\+\?\)\)))\\\/.*/
 const expressRootRegexp = '/^\\/?(?=\\/|$)/i'
@@ -21,7 +22,7 @@ export interface IConfig {
 		middlewareName: string
 		closure: string
 		paramName: string
-	}
+	}[]
 	requestSchemaName?: string
 	requestSchemaParams?: any[]
 	responseSchemaName?: string
@@ -247,16 +248,20 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 	}
 	const pathArrayPromises = map(pathArray, async (path) => {
 		const methodsPromises = getRouteMethods(route).map(async (method) => {
-			let permissionHandlerPromise: any
-			let workflowHandlerPromise: any
-
+			const permissionHandlerPromises = [] as Promise<ILocation>[]
+			let workflowHandlerPromise: Promise<ILocation>
 			forEach(route.stack, (handle) => {
-				if (config.permissions && handle.name === config.permissions.middlewareName) {
-					permissionHandlerPromise = locate(handle.handle, {
-						closure: config.permissions.closure === 'default' ? 'exports.default' : config.permissions.closure,
-						paramName: config.permissions.paramName
-					})
-				}
+				forEach(config.permissions, (configPermission) => {
+					if (handle.name === configPermission.middlewareName) {
+						permissionHandlerPromises.push(
+							locate(handle.handle, {
+								closure: configPermission.closure === 'default' ? 'exports.default' : configPermission.closure,
+								paramName: configPermission.paramName
+							})
+						)
+					}
+				})
+
 				if (handle.name === config.businessLogicName) {
 					workflowHandlerPromise = locate(handle.handle)
 				}
@@ -266,15 +271,15 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 			})
 			const permissions = [] as string[]
 			let requestJoiSchema
-			const [permissionResult, workflowResult] = await Promise.all([permissionHandlerPromise, workflowHandlerPromise])
-			if (permissionResult) {
-				permissionResult.resultProperties.result.forEach((value: any) => {
+			const [workflowResult, ...permissionResults] = await Promise.all([workflowHandlerPromise, ...permissionHandlerPromises])
+			forEach(permissionResults, (permissionResult) => {
+				permissionResult.resultProperties.result.forEach((value) => {
 					if (!isNaN(parseInt(value.name, 10))) {
 						const permission = value.value
 						permissions.push(permission.value)
 					}
 				})
-			}
+			})
 
 			const responses = []
 			if (workflowResult) {

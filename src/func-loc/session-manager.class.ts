@@ -101,7 +101,7 @@ export class SessionManager {
 			importPath = path.join(root, importPath)
 		}
 
-		let resultProperties = []
+		let resultProperties = { result: [] as any }
 		if (opts?.closure) {
 			const properties2 = await this.post$('Runtime.getProperties', {
 				objectId: scopes.value.objectId
@@ -123,13 +123,13 @@ export class SessionManager {
 			if (!properties3Object) {
 				throw Error(`Middleware params ${opts.paramName} not found`)
 			}
-
-			resultProperties = await this.post$('Runtime.getProperties', {
-				objectId: properties3Object.value.objectId,
-				ownProperties: true
-			})
+			if (properties3Object.value.objectId) {
+				resultProperties = await this.post$('Runtime.getProperties', {
+					objectId: properties3Object.value.objectId,
+					ownProperties: true
+				})
+			}
 		}
-
 		return {
 			resultProperties,
 			post: this.post$,
