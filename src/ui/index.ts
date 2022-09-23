@@ -6,7 +6,7 @@ export default (outputPath: string) =>
 	new Promise((resolve, reject) => {
 		webpack(
 			{
-				mode: 'production',
+				mode: 'development',
 				entry: {
 					app: path.join(__dirname, 'src.js')
 				},
@@ -14,18 +14,29 @@ export default (outputPath: string) =>
 					rules: [
 						{
 							test: /\.json$/,
-							loader: 'json-loader',
-							type: 'javascript/auto'
+							type: 'json'
 						},
 						{
-							test: /\.css$/,
-							use: [{ loader: 'style-loader' }, { loader: 'css-loader' }]
+							test: /\.css$/i,
+							use: ['style-loader', 'css-loader']
 						}
 					]
+				},
+				resolve: {
+					alias: {
+						stream: 'stream-browserify'
+					},
+					fallback: {
+						fs: false,
+						stream: require.resolve('stream-browserify')
+					}
 				},
 				plugins: [
 					new HtmlWebpackPlugin({
 						template: path.join(__dirname, 'index.html')
+					}),
+					new webpack.ProvidePlugin({
+						Buffer: ['buffer', 'Buffer']
 					})
 				],
 				output: {
