@@ -1,5 +1,5 @@
 import { Express, IRoute, IRouter } from 'express'
-import { compact, filter, forEach, get, has, includes, isInteger, isNaN, join, map, reduce, set, startsWith, trimStart, uniq } from 'lodash'
+import { compact, filter, forEach, get, has, includes, isInteger, isNaN, join, map, reduce, set, slice, startsWith, trimStart, uniq } from 'lodash'
 import Joi, { Schema } from 'joi'
 // @ts-ignore
 import Values from 'joi/lib/values'
@@ -35,6 +35,7 @@ export interface IConfig {
 		tagSeparator?: string
 		versioning?: boolean
 		versionSeparator?: string
+		versionLength?: number
 	}
 	filter?: string
 }
@@ -214,15 +215,23 @@ export const parseTags = (basePath: string[], path: string[], config: IConfig) =
 	}
 
 	if (config.tags?.versioning && config.tags?.versionSeparator) {
-		tags.push(basePath.pop(), ...tags)
-	}
+		if (config.tags?.versionLength) {
+			const cutLength = config.tags?.versionLength < basePath.length ? config.tags?.versionLength : basePath.length
+			const basePathEnd = config.tags?.baseUrlSegmentsLength ?? 0
+			const withoutBasePath = slice(basePath, basePathEnd, basePath.length)
+			const tempTags = slice(withoutBasePath, 0, cutLength)
 
+			tags = [tempTags.join(config.tags?.versionSeparator), ...tags]
+		} else {
+			tags = [basePath.pop(), ...tags]
+		}
+	}
 	tags = compact(uniq(map(tags, (tag: string) => tag.charAt(0).toUpperCase() + tag.slice(1))))
 	let result: string[] = config.tags?.joinTags ? [tags.join(config.tags?.tagSeparator)] : tags
 
 	if (config.tags?.versioning) {
-		const [version, ...restTags] = tags
-		result = [[version, restTags.join(config.tags?.tagSeparator)].join(config.tags?.versionSeparator)]
+		const [version] = tags
+		result = [version]
 	}
 
 	return result

@@ -171,9 +171,9 @@ export function getBaseMethod(
 	queryParameterSchema: any,
 	responses: any,
 	requestBody: any,
-	summary: string,
+	description: string,
 	operationId: string,
-	description?: string
+	summary?: string
 ): IPathMethods {
 	let requestBodyObject: any = null
 	if (requestBody) {
@@ -337,6 +337,9 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 				const { description } = requestSwagger
 				const operationId = camelCase(`${method}${path}`)
 
+				const desc = [permissionDescriptions, description].filter((v) => !!v).join(', ')
+				// TODO: implement summary in the future
+				const summary = undefined as any
 				return getBaseMethod(
 					method,
 					tags,
@@ -346,9 +349,9 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 					queryParameterArray,
 					responsesSwagger,
 					requestBody,
-					permissionDescriptions,
+					desc,
 					operationId,
-					description
+					summary
 				)
 			} catch (e) {
 				console.log(`ERROR with method:${data.method} ${path}`, e)
