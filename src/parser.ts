@@ -1,6 +1,7 @@
 import { Express, IRoute, IRouter } from 'express'
 import { compact, filter, forEach, get, has, includes, isInteger, isNaN, join, map, reduce, set, slice, startsWith, trimStart, uniq } from 'lodash'
 import Joi, { Schema } from 'joi'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import Values from 'joi/lib/values'
 import { locate } from './func-loc'
@@ -22,6 +23,7 @@ export interface IConfig {
 		middlewareName: string
 		closure: string
 		paramName: string
+		groupName?: string
 	}[]
 	requestSchemaName?: string
 	requestSchemaParams?: any[]
@@ -243,29 +245,38 @@ export const parseTags = (basePath: string[], path: string[], config: IConfig) =
  * @param {Object} config parser config
  * @return {Object[]} Endpoints info
  */
-
 export const parseExpressRoute = async (route: IRoute, basePath: string, config: IConfig) => {
 	const endpoints = [] as any[]
-	let security: any = []
-
-	const pathArray = Array.isArray(route.path) ? route.path : [route.path]
 
 	const filterRegex = config.filter ? new RegExp(config.filter) : null
-
 	if (filterRegex && !filterRegex.test(`${basePath}/${route.path}`)) {
 		return []
 	}
+
+	const pathArray = Array.isArray(route.path) ? route.path : [route.path]
+
 	const pathArrayPromises = map(pathArray, async (path) => {
 		const methodsPromises = getRouteMethods(route).map(async (method) => {
-			const permissionHandlerPromises = [] as Promise<ILocation>[]
-			let workflowHandlerPromise: Promise<ILocation>
+			// get permission middlewares and workflow of endpoint
+			const permissionHandlerPromises: Promise<{ groupName?: string } & ILocation>[] = []
+			let workflowHandlerPromise: Promise<ILocation> | null = null
+			let security: { [name: string]: any[] }[] = []
+
 			forEach(route.stack, (handle) => {
 				forEach(config.permissions, (configPermission) => {
 					if (handle.name === configPermission.middlewareName) {
 						permissionHandlerPromises.push(
-							locate(handle.handle, {
-								closure: configPermission.closure === 'default' ? 'exports.default' : configPermission.closure,
-								paramName: configPermission.paramName
+							// eslint-disable-next-line no-async-promise-executor
+							new Promise(async (resolve) => {
+								const location = await locate(handle.handle, {
+									closure: configPermission.closure === 'default' ? 'exports.default' : configPermission.closure,
+									paramName: configPermission.paramName
+								})
+
+								resolve({
+									groupName: configPermission.groupName ?? undefined,
+									...location
+								})
 							})
 						)
 					}
@@ -275,24 +286,42 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 					workflowHandlerPromise = locate(handle.handle)
 				}
 				if (config.swaggerInitInfo.security?.scope === AUTH_SCOPE.ENDPOINT && config.swaggerInitInfo.security?.authMiddlewareName === handle.name) {
-					security = map(config.swaggerInitInfo?.security?.methods, (methodName) => ({ [methodName.name]: [] }))
+					security = map(config.swaggerInitInfo?.security?.methods, (securityMethod) => ({ [securityMethod.name]: [] }))
 				}
 			})
-			const permissions = [] as string[]
-			let requestJoiSchema
+
 			const [workflowResult, ...permissionResults] = await Promise.all([workflowHandlerPromise, ...permissionHandlerPromises])
+
+			// handle permissions
+			const permissions: { [groupName: string]: string[] } = {}
 			forEach(permissionResults, (permissionResult) => {
-				permissionResult.resultProperties.result.forEach((value) => {
+				if (permissionResult.groupName) {
+					if (!permissions[permissionResult.groupName]) {
+						permissions[permissionResult.groupName] = []
+					}
+				} else if (!permissions.default) {
+					permissions.default = []
+				}
+
+				forEach(permissionResult.resultProperties.result, (value) => {
 					if (!isNaN(parseInt(value.name, 10))) {
-						const permission = value.value
-						permissions.push(permission.value)
+						const permission = value.value.value
+
+						if (permissionResult.groupName) {
+							permissions[permissionResult.groupName].push(permission)
+						} else {
+							permissions.default.push(permission)
+						}
 					}
 				})
 			})
 
+			// handle request and response
+			let requestJoiSchema
 			const responses = []
 			if (workflowResult) {
 				const workflow = await import(workflowResult.path)
+
 				if (has(workflow, config.requestSchemaName)) {
 					requestJoiSchema = get(workflow, config.requestSchemaName)
 					if (typeof requestJoiSchema === 'function') {
@@ -300,6 +329,7 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 						requestJoiSchema = requestJoiSchema(...params)
 					}
 				}
+
 				if (has(workflow, config.responseSchemaName)) {
 					let outputJoiSchema = get(workflow, config.responseSchemaName)
 					if (typeof outputJoiSchema === 'function') {
@@ -312,6 +342,7 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 					})
 				}
 			}
+
 			return {
 				method,
 				permissions,
@@ -339,14 +370,14 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 
 		const tags = parseTags(basePathSegments, pathSegments, config)
 
-		const endpoint = {
+		endpoints.push({
 			path: resultPath,
 			tags,
 			methods
-		}
-		endpoints.push(endpoint)
+		})
 	})
 	await Promise.all(pathArrayPromises)
+
 	return endpoints
 }
 
@@ -374,7 +405,9 @@ export const parseEndpoints = async (app: Express, config: IConfig, basePath?: s
 	// eslint-disable-next-line no-underscore-dangle
 	const stack = app.stack || ((app._router && app._router.stack) as IRouter['stack'][])
 
+	// eslint-disable-next-line no-param-reassign
 	endpoints = endpoints || []
+	// eslint-disable-next-line no-param-reassign
 	basePath = basePath || ''
 
 	if (!stack) {
@@ -388,6 +421,7 @@ export const parseEndpoints = async (app: Express, config: IConfig, basePath?: s
 		const stackPromises = map(stack, async (stackItem) => {
 			if (stackItem.route) {
 				const newEndpoints = await parseExpressRoute(stackItem.route, basePath, config)
+				// eslint-disable-next-line no-param-reassign
 				endpoints = addEndpoints(endpoints, newEndpoints)
 			} else if (stackItemValidNames.indexOf(stackItem.name) > -1) {
 				if (regexpExpressRegexp.test(stackItem.regexp)) {
@@ -406,6 +440,7 @@ export const parseEndpoints = async (app: Express, config: IConfig, basePath?: s
 
 		await Promise.all(stackPromises)
 	}
+
 	return endpoints
 }
 
