@@ -1,9 +1,9 @@
 import joiToSwagger from 'joi-to-swagger'
 import Joi from 'joi'
-import { includes, isEmpty, map, camelCase } from 'lodash'
+import { includes, map, camelCase } from 'lodash'
+
 // eslint-disable-next-line import/no-cycle
 import getSecurityScheme, { AUTH_METHOD, AUTH_SCOPE, IAuthenticationSchemeConfig } from './utils/authSchemes'
-
 /* eslint-disable import/no-cycle */
 import { IConfig } from './parser'
 
@@ -253,12 +253,24 @@ const prepAlternativesArray = (alts: any[]) =>
 		}
 	)
 
-const getPermissionDescription = (permissions: string[]): string => {
-	const permissionsResult = 'PERMISSION:'
-	if (!isEmpty(permissions)) {
-		return `${permissionsResult} [${permissions.join(', ')}]`
+const getPermissionDescription = (permissions: { [groupName: string]: string[] }) => {
+	const permissionsResult = 'permissions:'
+
+	const permissionGroupNames = Object.keys(permissions)
+	const hasDefaultGroup = includes(permissionGroupNames, 'default')
+
+	if (permissionGroupNames.length === 0) {
+		return `${permissionsResult} NO`
 	}
-	return `${permissionsResult} NO`
+
+	if (hasDefaultGroup && Object.keys(permissions).length === 1) {
+		return `${permissionsResult} [${permissions.default.join(', ')}]`
+	}
+
+	return `${permissionsResult}<ul>${map(
+		permissions,
+		(permisisonGroup, permisisonGroupName) => `<li>${permisisonGroupName}${permisisonGroup.length > 0 ? `: [${permisisonGroup.join(', ')}]` : ''}</li>`
+	).join('')}</ul>`
 }
 
 export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
@@ -300,7 +312,8 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 						name,
 						in: 'header',
 						schema,
-						required: includes(requestSwagger.properties.headers.required, name)
+						required: includes(requestSwagger.properties.headers.required, name),
+						description: schema.description || undefined
 					})) || []
 
 				const queryParameterArray =
@@ -308,15 +321,17 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 						name,
 						in: 'query',
 						schema,
-						required: includes(requestSwagger.properties.query.required, name)
+						required: includes(requestSwagger.properties.query.required, name),
+						description: schema.description || undefined
 					})) || []
 
 				const pathParameterArray =
 					map(requestSwagger.properties.params?.properties, (schema, name) => ({
 						name,
 						in: 'path',
+						schema,
 						required: true,
-						schema
+						description: schema.description || undefined
 					})) || []
 
 				let requestBody: {
@@ -332,14 +347,14 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 					}
 				}
 
+				const { description } = requestSwagger
 				// Print permission label only if is define in config
 				const permissionDescriptions = config.permissions ? getPermissionDescription(permissionObject) : ''
-				const { description } = requestSwagger
+				const resultDescription = [description, permissionDescriptions].filter((v) => !!v).join(', ')
 				const operationId = camelCase(`${method}${path}`)
-
-				const desc = [permissionDescriptions, description].filter((v) => !!v).join(', ')
 				// TODO: implement summary in the future
-				const summary = undefined as any
+				const summary: any = undefined
+
 				return getBaseMethod(
 					method,
 					tags,
@@ -349,7 +364,7 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 					queryParameterArray,
 					responsesSwagger,
 					requestBody,
-					desc,
+					resultDescription,
 					operationId,
 					summary
 				)
@@ -365,6 +380,7 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 			}),
 			{}
 		)
+
 	return {
 		[path]: {
 			...methodsSwaggerObjects
