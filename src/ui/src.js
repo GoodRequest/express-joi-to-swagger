@@ -58,7 +58,7 @@ SwaggerUIBundle({
 		SwaggerUIStandalonePreset // // NOTE: turn on for topbar
 	],
 	urls: [
-		{ name: specName, url: '/data.json' }
+		{ name: specName, url: 'data.json' }
 		// { name: 'local1', url: '/data.json' }
 	],
 	'urls.primaryName': specName // default spec
