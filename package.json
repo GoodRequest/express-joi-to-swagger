@@ -12,8 +12,7 @@
     "prepublishOnly": "rm -rf dist && tsc --project tsconfig.build.json && copyfiles -f ./src/ui/index.html ./dist/ui",
     "demo": "rm -rf demo/dist && node -r ts-node/register demo/index.ts",
     "lint": "eslint src tests --color --ext .js --ext .ts",
-    "type-check": "tsc --project tsconfig.json --noEmit",
-    "ttt": "node -r ts-node/register src/ui/index.ts"
+    "type-check": "tsc --project tsconfig.json --noEmit"
   },
   "files": [
     "dist"
@@ -25,13 +24,12 @@
     "html-webpack-plugin": "5.5.0",
     "joi": "^17.6.1",
     "joi-to-swagger": "6.1.1",
-    "json-loader": "0.5.7",
     "lodash": "4.17.21",
     "passport": "0.6.0",
     "passport-local": "1.0.0",
     "stream-browserify": "3.0.0",
     "style-loader": "3.3.1",
-    "swagger-ui-dist": "4.14.1",
+    "swagger-ui-dist": "4.14.2",
     "ts-node": "10.9.1",
     "uuid": "9.0.0",
     "webpack": "5.74.0"
@@ -53,7 +51,7 @@
     "eslint-plugin-prettier": "4.2.1",
     "husky": "8.0.1",
     "prettier": "2.7.1",
-    "typescript": "4.8.3"
+    "typescript": "4.8.4"
   },
   "description": "Solution that generates beatiful Swagger API documentation from code. 💻",
   "bugs": {

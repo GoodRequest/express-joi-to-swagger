@@ -21,7 +21,8 @@ const config: IConfig = {
 	swaggerInitInfo: {
 		info: {
 			description: 'Generated Store',
-			title: 'Test app'
+			title: 'Test app',
+			version: '1.0.0-demo'
 		},
 		security: {
 			methods: [{

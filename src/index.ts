@@ -23,15 +23,7 @@ const getSwagger = async (app: Express, config: IConfig) => {
 		fs.mkdirSync(outputPath)
 	}
 	if (config.generateUI) {
-		await new Promise((resolve, reject) => {
-			fs.writeFile(path.join(__dirname, 'ui', 'data.json'), JSON.stringify(result, null, '\t'), (err) => {
-				if (err) {
-					return reject(err)
-				}
-				return resolve(true)
-			})
-		})
-		await generateUi(outputPath)
+		await generateUi(outputPath, config)
 	}
 	await new Promise((resolve, reject) => {
 		fs.writeFile(path.join(outputPath, 'data.json'), JSON.stringify(result, null, '\t'), (err) => {

@@ -1,21 +1,18 @@
 import webpack from 'webpack'
 import path from 'path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
+import { IConfig } from '../parser'
 
-export default (outputPath: string) =>
+export default (outputPath: string, config: IConfig) =>
 	new Promise((resolve, reject) => {
 		webpack(
 			{
-				mode: 'development',
+				mode: 'production',
 				entry: {
 					app: path.join(__dirname, 'src.js')
 				},
 				module: {
 					rules: [
-						{
-							test: /\.json$/,
-							type: 'json'
-						},
 						{
 							test: /\.css$/i,
 							use: ['style-loader', 'css-loader']
@@ -28,6 +25,7 @@ export default (outputPath: string) =>
 					},
 					fallback: {
 						fs: false,
+						path: false,
 						stream: require.resolve('stream-browserify')
 					}
 				},
@@ -37,6 +35,9 @@ export default (outputPath: string) =>
 					}),
 					new webpack.ProvidePlugin({
 						Buffer: ['buffer', 'Buffer']
+					}),
+					new webpack.DefinePlugin({
+						APP_VERSION: config.swaggerInitInfo.info?.version ? JSON.stringify(config.swaggerInitInfo.info?.version) : undefined
 					})
 				],
 				output: {

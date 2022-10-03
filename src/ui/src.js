@@ -3,8 +3,6 @@ import { forEach, filter, trim, every } from 'lodash'
 import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist'
 import 'swagger-ui-dist/swagger-ui.css'
 
-import spec from './data.json'
-
 const AdvancedFilterPlugin = (system) => ({
 	fn: {
 		opsFilter: (taggedOps, phrase) => {
@@ -40,25 +38,28 @@ const AdvancedFilterPlugin = (system) => ({
 	}
 })
 
+// eslint-disable-next-line no-undef
+const specName = APP_VERSION || 'data'
+
 SwaggerUIBundle({
-	spec,
 	dom_id: '#swagger',
 	filter: true,
 	deepLinking: true,
-	// layout: 'StandaloneLayout', // NOTE: turn on for topbar
+	layout: 'StandaloneLayout', // NOTE: turn on for topbar
 	operationsSorter: 'alpha',
 	onComplete: () => {
 		// NOTE: workaround for expand schema after page is loaded just first level https://github.com/swagger-api/swagger-ui/issues/6494
+		// eslint-disable-next-line no-undef
 		document.querySelectorAll('#swagger button.model-box-control[aria-expanded="false"]').forEach((btn) => btn.click())
 	},
 	plugins: [AdvancedFilterPlugin, SwaggerUIBundle.plugins.DownloadUrl],
 	presets: [
-		SwaggerUIBundle.presets.apis
-		// SwaggerUIStandalonePreset // // NOTE: turn on for topbar
-	]
-	// urls: [
-	// 	{ name: 'local', url: '/data.json' },
-	// 	{ name: 'local1', url: '/data.json' }
-	// ],
-	// 'urls.primaryName': 'local' // default spec
+		SwaggerUIBundle.presets.apis,
+		SwaggerUIStandalonePreset // // NOTE: turn on for topbar
+	],
+	urls: [
+		{ name: specName, url: '/data.json' }
+		// { name: 'local1', url: '/data.json' }
+	],
+	'urls.primaryName': specName // default spec
 })
