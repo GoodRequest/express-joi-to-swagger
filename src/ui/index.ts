@@ -1,10 +1,14 @@
 import webpack from 'webpack'
 import path from 'path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import CreateFileWebpack from 'create-file-webpack'
 import { IConfig } from '../parser'
 
 export default (outputPath: string, config: IConfig) =>
 	new Promise((resolve, reject) => {
+		const archiveJson = [{ name: config.swaggerInitInfo.info?.version || 'apidoc', url: 'data.json' }]
 		webpack(
 			{
 				mode: 'production',
@@ -35,6 +39,11 @@ export default (outputPath: string, config: IConfig) =>
 					}),
 					new webpack.ProvidePlugin({
 						Buffer: ['buffer', 'Buffer']
+					}),
+					new CreateFileWebpack({
+						path: outputPath,
+						fileName: 'archive.json',
+						content: JSON.stringify(archiveJson)
 					}),
 					new webpack.DefinePlugin({
 						APP_VERSION: config.swaggerInitInfo.info?.version ? JSON.stringify(config.swaggerInitInfo.info?.version) : undefined
