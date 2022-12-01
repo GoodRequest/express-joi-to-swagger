@@ -1,6 +1,8 @@
+import React from 'react'
 import { forEach, filter, trim, every } from 'lodash'
-
 import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist'
+import Topbar from './Topbar'
+
 import 'swagger-ui-dist/swagger-ui.css'
 
 const AdvancedFilterPlugin = (system) => ({
@@ -38,6 +40,16 @@ const AdvancedFilterPlugin = (system) => ({
 	}
 })
 
+const CustomTopbarPlugin = () => {
+	return {
+		wrapComponents: {
+			Topbar: (Original: any, _system: any) => (props: any) => {
+				return <Topbar {...props} />
+			}
+		}
+	}
+}
+
 // eslint-disable-next-line no-undef
 fetch(`archive.json?v=${APP_VERSION}`)
 	.then((response) => response.json())
@@ -53,7 +65,7 @@ fetch(`archive.json?v=${APP_VERSION}`)
 				// eslint-disable-next-line no-undef
 				document.querySelectorAll('#swagger button.model-box-control[aria-expanded="false"]').forEach((btn) => btn.click())
 			},
-			plugins: [AdvancedFilterPlugin, SwaggerUIBundle.plugins.DownloadUrl],
+			plugins: [AdvancedFilterPlugin, SwaggerUIBundle.plugins.DownloadUrl, CustomTopbarPlugin],
 			presets: [
 				SwaggerUIBundle.presets.apis,
 				SwaggerUIStandalonePreset // // NOTE: turn on for topbar
