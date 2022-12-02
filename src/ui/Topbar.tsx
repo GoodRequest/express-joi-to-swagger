@@ -136,6 +136,12 @@ export default class Topbar extends React.Component {
 		})
 	}
 
+	onModalClose = () => {
+		this.setState({
+			visible: false
+		})
+	}
+
 	render() {
 		const { getComponent, specSelectors, getConfigs } = this.props
 		const Button = getComponent('Button')
@@ -159,7 +165,12 @@ export default class Topbar extends React.Component {
 				rows.push(
 					<Option key={i} value={link.url} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 						<span>{link.name}</span>
-						<button onClick={(e) => this.onClickDiff(e, link)}>diff</button>
+						{/* wrapping button in span with .swagger-ui so the styles for .btn and .try-out__btn classes work */}
+						<span className='swagger-ui'>
+							<button onClick={(e) => this.onClickDiff(e, link)} className='btn try-out__btn' style={{ background: 'white' }}>
+								diff
+							</button>
+						</span>
 					</Option>
 				)
 			})
@@ -194,7 +205,7 @@ export default class Topbar extends React.Component {
 						</form>
 					</div>
 				</div>
-				<Modal visible={this.state.visible} />
+				<Modal visible={this.state.visible} onClose={() => this.onModalClose()} options={['v0.0.1', 'v0.0.2', 'v0.0.3']} />
 			</div>
 		)
 	}
