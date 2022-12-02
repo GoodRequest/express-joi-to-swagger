@@ -4,6 +4,7 @@ import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist'
 import Topbar from './Topbar'
 
 import 'swagger-ui-dist/swagger-ui.css'
+import './custom.css'
 
 const AdvancedFilterPlugin = (system) => ({
 	fn: {
