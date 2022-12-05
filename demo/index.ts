@@ -38,7 +38,7 @@ const config: IConfig = {
 		}
 	},
 	tags: {},
-	filter: '.*users.*'
+	// filter: '.*users.*'
 }
 
 // Use case example
