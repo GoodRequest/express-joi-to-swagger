@@ -6,7 +6,9 @@ export const requestSchema = Joi.object({
 	query: Joi.object(),
 	body: Joi.object({
 		name: Joi.string().min(1).example('This is name').required(),
-		color: Joi.string().valid('BLUE', 'PINK', 'RED').optional()
+		color: Joi.string().valid('BLUE', 'PINK', 'RED').optional(),
+		durationFrom: Joi.number().integer().min(0).max(999).optional().allow(null).example(10),
+		durationTo: Joi.number().integer().min(Joi.ref('/body.durationFrom')).max(999).optional().allow(null).example(10)
 	})
 })
 
