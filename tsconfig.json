@@ -6,6 +6,7 @@
     	"outDir": "./dist",
 		"sourceMap": true,
         "noImplicitAny": true,
+        "jsx": "react",
 		"typeRoots" : [
             "./src/types",
             "node_modules/@types"

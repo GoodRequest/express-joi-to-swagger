@@ -1,27 +1,39 @@
 import webpack from 'webpack'
 import path from 'path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import CreateFileWebpack from 'create-file-webpack'
 import { IConfig } from '../parser'
 
+console.log(path.resolve(__dirname, '..', '..', 'node_modules', 'react'))
 export default (outputPath: string, config: IConfig) =>
 	new Promise((resolve, reject) => {
+		const archiveJson = [{ name: config.swaggerInitInfo.info?.version || 'apidoc', url: 'data.json' }]
 		webpack(
 			{
-				mode: 'production',
+				mode: 'development',
 				entry: {
-					app: path.join(__dirname, 'src.js')
+					app: path.join(__dirname, 'src.tsx')
 				},
 				module: {
 					rules: [
 						{
 							test: /\.css$/i,
 							use: ['style-loader', 'css-loader']
+						},
+						{
+							test: /\.tsx?$/,
+							use: 'ts-loader',
+							exclude: /node_modules/
 						}
 					]
 				},
 				resolve: {
+					extensions: ['.tsx', '.ts', '.js'],
 					alias: {
-						stream: 'stream-browserify'
+						stream: 'stream-browserify',
+						react: path.resolve(__dirname, '..', '..', 'node_modules', 'react')
 					},
 					fallback: {
 						fs: false,
@@ -35,6 +47,11 @@ export default (outputPath: string, config: IConfig) =>
 					}),
 					new webpack.ProvidePlugin({
 						Buffer: ['buffer', 'Buffer']
+					}),
+					new CreateFileWebpack({
+						path: outputPath,
+						fileName: 'archive.json',
+						content: JSON.stringify(archiveJson)
 					}),
 					new webpack.DefinePlugin({
 						APP_VERSION: config.swaggerInitInfo.info?.version ? JSON.stringify(config.swaggerInitInfo.info?.version) : undefined
