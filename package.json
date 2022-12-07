@@ -25,7 +25,7 @@
     "express": "4.18.2",
     "html-webpack-plugin": "5.5.0",
     "joi": "^17.6.1",
-    "joi-to-swagger": "github:kot-1999/joi-to-swagger",
+    "joi-to-swagger": "github:GoodRequest/joi-to-swagger",
     "lodash": "4.17.21",
     "openapi-diff": "0.23.6",
     "passport": "0.6.0",
