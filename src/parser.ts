@@ -19,11 +19,13 @@ const stackItemValidNames = ['router', 'bound dispatch', 'mounted_app']
 export interface IConfig {
 	outputPath: string
 	generateUI: boolean
+	permissionsDescriptionFormatter?: (permissionObject: any) => string
 	permissions?: {
 		middlewareName: string
 		closure: string
-		paramName: string
+		paramName?: string
 		groupName?: string
+		parser?: (param: any, scopes: any) => Promise<any>
 	}[]
 	requestSchemaName?: string
 	requestSchemaParams?: any[]
@@ -270,7 +272,8 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 							new Promise(async (resolve) => {
 								const location = await locate(handle.handle, {
 									closure: configPermission.closure === 'default' ? 'exports.default' : configPermission.closure,
-									paramName: configPermission.paramName
+									paramName: configPermission.paramName,
+									parser: configPermission.parser
 								})
 
 								resolve({
