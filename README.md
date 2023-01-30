@@ -49,7 +49,7 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 | **permissions**.parser					| function		|  ❌  | Custom parse function for permission middleware
 | **permissions**.middlewareName			| string  		|  ✅  | Name of the middleware responsible for handling API permissions.													                              						|
 | **permissions**.closure					| string  		|  ✅  | Name of the permission middleware closure. 													                              						|
-| **permissions**.paramName					| string  		|  ✅  | Name of the parameter containing permissions passed to middleware.													                              						|
+| **permissions**.paramName					| string  		|  ❌  | Name of the parameter containing permissions passed to middleware.													                              						|
 | **permissionsFormatter**					| function		|  ❌  | Custom formatting function for permissions description			|
 | **requestSchemaName**						| string  		|  ❌  | Name of the Joi schema object defining request structure.     |
 | **responseSchemaName**					| string  		|  ❌  | Name of the Joi schema object defining response structure.     |
