@@ -10,7 +10,8 @@ const PREFIX = '__functionLocation__'
 
 export interface ILocateOptions {
 	closure: string
-	paramName: string
+	paramName?: string
+	parser?: (param: any, scopes: any) => Promise<any>
 }
 
 export class SessionManager {
@@ -103,31 +104,35 @@ export class SessionManager {
 
 		let resultProperties = { result: [] as any }
 		if (opts?.closure) {
-			const properties2 = await this.post$('Runtime.getProperties', {
-				objectId: scopes.value.objectId
-			})
-
-			const closure = `Closure (${opts.closure})`
-			const properties2Object = properties2.result.find((el: any) => el.value.description === closure)
-
-			if (!properties2Object) {
-				throw Error(`Middleware not found for closure: ${closure}`)
-			}
-
-			const properties3 = await this.post$('Runtime.getProperties', {
-				objectId: properties2Object.value.objectId
-			})
-
-			const properties3Object = properties3.result.find((el: any) => el.name === opts.paramName)
-
-			if (!properties3Object) {
-				throw Error(`Middleware params ${opts.paramName} not found`)
-			}
-			if (properties3Object.value.objectId) {
-				resultProperties = await this.post$('Runtime.getProperties', {
-					objectId: properties3Object.value.objectId,
-					ownProperties: true
+			if (opts?.parser && typeof opts.parser === 'function') {
+				resultProperties = await opts.parser(this, scopes)
+			} else {
+				const properties2 = await this.post$('Runtime.getProperties', {
+					objectId: scopes.value.objectId
 				})
+
+				const closure = `Closure (${opts.closure})`
+				const properties2Object = properties2.result.find((el: any) => el.value.description === closure)
+
+				if (!properties2Object) {
+					throw Error(`Middleware not found for closure: ${closure}`)
+				}
+
+				const properties3 = await this.post$('Runtime.getProperties', {
+					objectId: properties2Object.value.objectId
+				})
+
+				const properties3Object = properties3.result.find((el: any) => el.name === opts.paramName)
+
+				if (!properties3Object) {
+					throw Error(`Middleware params ${opts.paramName} not found`)
+				}
+				if (properties3Object.value.objectId) {
+					resultProperties = await this.post$('Runtime.getProperties', {
+						objectId: properties3Object.value.objectId,
+						ownProperties: true
+					})
+				}
 			}
 		}
 		return {

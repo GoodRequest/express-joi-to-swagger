@@ -349,7 +349,14 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 
 				const { description } = requestSwagger
 				// Print permission label only if is define in config
-				const permissionDescriptions = config.permissions ? getPermissionDescription(permissionObject) : ''
+				let permissionDescriptions = config.permissions ? getPermissionDescription(permissionObject) : ''
+				if (config.permissions) {
+					if (config.permissionsDescriptionFormatter && typeof config.permissionsDescriptionFormatter === 'function') {
+						permissionDescriptions = config.permissionsDescriptionFormatter(permissionObject)
+					} else {
+						permissionDescriptions = getPermissionDescription(permissionObject)
+					}
+				}
 				const resultDescription = [description, permissionDescriptions].filter((v) => !!v).join(', ')
 				const operationId = camelCase(`${method}${path}`)
 				// TODO: implement summary in the future

@@ -46,9 +46,11 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 | **outputPath**							| string  		|  ✅  | Path to directory where output JSON file should be created. 														                      						|
 | **generateUI**							| boolean 		|  ✅  | Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated.					                                                  						|
 | **permissions**							| object  		|  ❌  | Configuration parameters for parsing permissions.
+| **permissions**.parser					| function		|  ❌  | Custom parse function for permission middleware
 | **permissions**.middlewareName			| string  		|  ✅  | Name of the middleware responsible for handling API permissions.													                              						|
 | **permissions**.closure					| string  		|  ✅  | Name of the permission middleware closure. 													                              						|
 | **permissions**.paramName					| string  		|  ✅  | Name of the parameter containing permissions passed to middleware.													                              						|
+| **permissionsFormatter**					| function		|  ❌  | Custom formatting function for permissions description			|
 | **requestSchemaName**						| string  		|  ❌  | Name of the Joi schema object defining request structure.     |
 | **responseSchemaName**					| string  		|  ❌  | Name of the Joi schema object defining response structure.     |
 | **requestSchemaParams**					| any[]			|  ❌  | Param for ability to pass mock params for requestSchema			|
