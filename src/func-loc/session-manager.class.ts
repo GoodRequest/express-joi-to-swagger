@@ -32,6 +32,7 @@ export class SessionManager {
 		})
 
 		this.session.disconnect()
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		delete global[PREFIX]
 		this.session = undefined
@@ -59,14 +60,17 @@ export class SessionManager {
 
 		// Create a function location object to put referencies into it
 		// So that we can easilly access to them
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		if (typeof global[PREFIX] === 'undefined') {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
 			global[PREFIX] = {}
 		}
 
 		// Create a reference of the function inside the global object
 		const uuid = v4()
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		global[PREFIX][uuid] = fn
 

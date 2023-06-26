@@ -38,8 +38,8 @@ const AdvancedFilterPlugin = (system) => ({
 	}
 })
 
-// eslint-disable-next-line no-undef
-fetch(`archive.json?v=${APP_VERSION}`)
+// eslint-disable-next-line no-undef, no-void
+void fetch(`archive.json?v=${APP_VERSION}`)
 	.then((response) => response.json())
 	.then((data) => {
 		SwaggerUIBundle({

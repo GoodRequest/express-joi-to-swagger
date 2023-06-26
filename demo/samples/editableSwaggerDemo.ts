@@ -5,11 +5,11 @@ import { getSwaggerEditable } from '../../src/utils/editableSwagger'
 const config: IConfig = {
 	outputPath: path.join(__dirname, '../outputSwagger.json'),
 	generateUI: false,
-	permissions: {
+	permissions: [{
 		middlewareName: 'permission',
 		closure: 'permissionMiddleware',
 		paramName: 'allowPermissions'
-	},
+	}],
 	requestSchemaName: 'requestSchema',
 	responseSchemaName: 'responseSchema',
 	businessLogicName: 'businessLogic',
