@@ -127,7 +127,7 @@ export function getSwaggerSchema(paths: IPath, config: IConfig): ISwagger {
 	const { swaggerInitInfo } = config
 
 	return {
-		openapi: '3.0.3',
+		openapi: '3.1.0',
 		servers: swaggerInitInfo?.servers || [
 			{
 				url: 'localhost:8080'
@@ -339,7 +339,7 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 					properties: any
 					required: boolean
 				}
-				if (method !== 'get' && method !== 'delete') {
+				if (method !== 'get') {
 					requestBody = {
 						type: 'object',
 						properties: requestSwagger.properties.body.anyOf ? prepAlternativesArray(requestSwagger.properties.body.anyOf) : requestSwagger.properties.body.properties,
