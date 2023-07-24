@@ -1,9 +1,9 @@
-import { forEach, filter, trim, every } from 'lodash'
+import { trim, every } from 'lodash'
 
 import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist'
 import 'swagger-ui-dist/swagger-ui.css'
 
-const AdvancedFilterPlugin = (system) => ({
+const AdvancedFilterPlugin = () => ({
 	fn: {
 		opsFilter: (taggedOps, phrase) => {
 			const normPhrases = trim(phrase)
@@ -11,29 +11,32 @@ const AdvancedFilterPlugin = (system) => ({
 				.split(' ')
 				.filter((v) => !!v)
 				.map((v) => trim(v))
-			const normalTaggedOps = JSON.parse(JSON.stringify(taggedOps))
-			forEach(normalTaggedOps, (tagObj, key) => {
-				const operations = filter(tagObj.operations, (operation) => {
+
+			const filteredData = taggedOps.filter((entities) => {
+				const operations = entities.get('operations').filter((operation) => {
 					const hasEvery = every(normPhrases, (normPhrase) => {
 						// search on path
-						const path = operation.path.toLowerCase().indexOf(normPhrase) !== -1
-						// search on tags
-						const tags = operation.operation.tags.filter((tag) => tag.toLowerCase().indexOf(normPhrase) !== -1)
+						const path = operation.get('path').toLowerCase().indexOf(normPhrase) !== -1
 
-						if (!path && tags.length <= 0) {
+						// search on tags
+						const tags = operation
+							.get('operation')
+							.get('tags')
+							.filter((tag) => tag.toLowerCase().indexOf(normPhrase) !== -1)
+						if (!path && tags.size <= 0) {
 							return false
 						}
 						return true
 					})
 					return hasEvery
 				})
-				if (operations.length === 0) {
-					delete normalTaggedOps[key]
-				} else {
-					normalTaggedOps[key].operations = operations
+
+				if (operations.size <= 0) {
+					return false
 				}
+				return true
 			})
-			return system.Im.fromJS(normalTaggedOps)
+			return filteredData
 		}
 	}
 })

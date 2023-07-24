@@ -30,10 +30,10 @@
     "passport-local": "1.0.0",
     "stream-browserify": "3.0.0",
     "style-loader": "3.3.3",
-    "swagger-ui-dist": "5.1.0",
+    "swagger-ui-dist": "5.2.0",
     "ts-node": "10.9.1",
     "uuid": "9.0.0",
-    "webpack": "5.88.0"
+    "webpack": "5.88.2"
   },
   "devDependencies": {
     "@goodrequest/eslint-config-typescript": "1.2.1",
