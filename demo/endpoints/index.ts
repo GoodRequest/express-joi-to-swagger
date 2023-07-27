@@ -15,6 +15,12 @@ export default () => {
 		validationMiddleware(requestSchema),
 		businessLogic
 	)
+
+	router.get(
+		'/users/:userID/dashboard',
+		validationMiddleware(requestSchema),
+		businessLogic
+	)
 	router.use('/animals', animalsRouter())
 	return router
 }

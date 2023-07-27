@@ -12,30 +12,36 @@ const AdvancedFilterPlugin = () => ({
 				.filter((v) => !!v)
 				.map((v) => trim(v))
 
-			const filteredData = taggedOps.filter((entities) => {
-				const operations = entities.get('operations').filter((operation) => {
-					const hasEvery = every(normPhrases, (normPhrase) => {
-						// search on path
-						const path = operation.get('path').toLowerCase().indexOf(normPhrase) !== -1
+			const filteredData = taggedOps
+				.map((entities) => {
+					const newentities = entities.map((entity, key) => {
+						if (key === 'operations') {
+							const operations = entity.filter((operation) => {
+								const hasEvery = every(normPhrases, (normPhrase) => {
+									// search on path
+									const path = operation.get('path').toLowerCase().indexOf(normPhrase) !== -1
 
-						// search on tags
-						const tags = operation
-							.get('operation')
-							.get('tags')
-							.filter((tag) => tag.toLowerCase().indexOf(normPhrase) !== -1)
-						if (!path && tags.size <= 0) {
-							return false
+									// search on tags
+									const tags = operation
+										.get('operation')
+										.get('tags')
+										.filter((tag) => tag.toLowerCase().indexOf(normPhrase) !== -1)
+
+									if (!path && tags.size <= 0) {
+										return false
+									}
+									return true
+								})
+								return hasEvery
+							})
+							return operations
 						}
-						return true
+						return entity
 					})
-					return hasEvery
+					return newentities
 				})
+				.filter((entities) => !(entities.get('operations').size <= 0))
 
-				if (operations.size <= 0) {
-					return false
-				}
-				return true
-			})
 			return filteredData
 		}
 	}
