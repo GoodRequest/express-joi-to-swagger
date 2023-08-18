@@ -17,6 +17,7 @@ const config: IConfig = {
 	requestSchemaName: 'requestSchema',
 	requestSchemaParams: [mockTranslateFn],
 	responseSchemaName: 'responseSchema',
+	errorResponseSchemaName: 'errorResponseSchemas',
 	businessLogicName: 'businessLogic',
 	swaggerInitInfo: {
 		info: {
