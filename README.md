@@ -42,7 +42,7 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 ## Config parameters
 
 | Name										| Type   		| Required 			  |Description																			  						|
-| ------------------------------------------|---------------|:----------------------:|---------------------------------------------------------------------------------------------------- 			|
+| ------------------------------------------|-------------|:----------------------:|---------------------------------------------------------------------------------------------------- 			|
 | **outputPath**							| string  		|  ✅  | Path to directory where output JSON file should be created. 														                      						|
 | **generateUI**							| boolean 		|  ✅  | Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated.					                                                  						|
 | **permissions**							| object  		|  ❌  | Configuration parameters for parsing permissions.
@@ -55,6 +55,7 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 | **responseSchemaName**					| string  		|  ❌  | Name of the Joi schema object defining response structure.     |
 | **requestSchemaParams**					| any[]			|  ❌  | Param for ability to pass mock params for requestSchema			|
 | **responseSchemaParams**					| any[]			|  ❌  | Param for ability to pass mock params for responseSchema			|
+| **errorResponseSchemaName**				| string	    |  ❌  | Name of the Joi schema object defining error responses structure.	 |
 | **businessLogicName**						| string  		|  ✅  | Name of the function responsible for handling business logic of the request.     |
 | **swaggerInitInfo**						| ISwaggerInit 	|  ❌  | Swagger initial information.      |
 | **swaggerInitInfo**.servers				| IServer[] 	|  ❌  | List of API servers     |
@@ -97,6 +98,7 @@ const config: IConfig = {
 	requestSchemaName: 'requestSchema',
 	requestSchemaParams: [mockFn],
 	responseSchemaName: 'responseSchema',
+	errorResponseSchemaName: 'errorResponseSchemas',
 	businessLogicName: 'businessLogic',
 	swaggerInitInfo: {
 		info: {
