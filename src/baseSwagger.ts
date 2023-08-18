@@ -224,13 +224,25 @@ interface SwaggerInput {
 
 export type ResponseCode = 200 | 300 | 400 | 401 | 403 | 404 | 409
 
+const formatResponseDescription = (code: ResponseCode, description?: string) => {
+	if (description) {
+		return description
+	}
+
+	if (code >= 400) {
+		return 'Error response'
+	}
+
+	return 'Success response'
+}
+
 export const createResponse = (
 	responseSchema: any,
 	code: ResponseCode, // TODO: add more response codes
 	description?: string
 ) => ({
 	[code]: {
-		description: description || 'Success response',
+		description: formatResponseDescription(code, description),
 		content: {
 			'application/json': {
 				schema: responseSchema

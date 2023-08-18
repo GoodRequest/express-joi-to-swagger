@@ -26,6 +26,23 @@ export const responseSchema = Joi.object({
 	}),
 })
 
+export const errorResponseSchemas = [
+	Joi.object({
+		messages: Joi.array().items(Joi.object({
+			type: Joi.string().required(),
+			message: Joi.string().required().example('Not found')
+			})
+		)
+	}).description('404'),
+	Joi.object({
+		messages: Joi.array().items(Joi.object({
+				type: Joi.string().required(),
+				message: Joi.string().required().example('Conflict')
+			})
+		)
+	}).description('409')
+]
+
 export const businessLogic = (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { userID } = req.params

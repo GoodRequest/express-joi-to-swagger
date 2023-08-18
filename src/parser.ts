@@ -31,6 +31,7 @@ export interface IConfig {
 	requestSchemaParams?: any[]
 	responseSchemaName?: string
 	responseSchemaParams?: any[]
+	errorResponseSchemaName?: string
 	businessLogicName: string
 	swaggerInitInfo?: ISwaggerInit
 	tags?: {
@@ -342,6 +343,20 @@ export const parseExpressRoute = async (route: IRoute, basePath: string, config:
 					responses.push({
 						outputJoiSchema,
 						code: 200
+					})
+				}
+
+				// Handle error responses from array
+				if (has(workflow, config.errorResponseSchemaName)) {
+					const outputJoiSchemas = get(workflow, config.errorResponseSchemaName)
+
+					outputJoiSchemas.forEach((outputJoiSchema: Schema) => {
+						responses.push({
+							outputJoiSchema,
+							// Accessing schema property
+							// eslint-disable-next-line no-underscore-dangle
+							code: outputJoiSchema._flags.description
+						})
 					})
 				}
 			}

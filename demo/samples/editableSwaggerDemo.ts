@@ -12,6 +12,7 @@ const config: IConfig = {
 	}],
 	requestSchemaName: 'requestSchema',
 	responseSchemaName: 'responseSchema',
+	errorResponseSchemaName: 'errorResponseSchemas',
 	businessLogicName: 'businessLogic',
 	swaggerInitInfo: {
 		info: {
