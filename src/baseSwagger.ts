@@ -173,6 +173,7 @@ export function getBaseMethod(
 	requestBody: any,
 	description: string,
 	operationId: string,
+	deprecated: boolean,
 	summary?: string
 ): IPathMethods {
 	let requestBodyObject: any = null
@@ -195,6 +196,7 @@ export function getBaseMethod(
 			summary,
 			operationId,
 			description,
+			deprecated,
 			parameters: [...headerParameterArray, ...pathParameterArray, ...queryParameterSchema],
 			responses,
 			...requestBodyObject
@@ -266,7 +268,7 @@ const prepAlternativesArray = (alts: any[]) =>
 	)
 
 const getPermissionDescription = (permissions: { [groupName: string]: string[] }) => {
-	const permissionsResult = 'permissions:'
+	const permissionsResult = 'Permissions:'
 
 	const permissionGroupNames = Object.keys(permissions)
 	const hasDefaultGroup = includes(permissionGroupNames, 'default')
@@ -359,9 +361,15 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 					}
 				}
 
-				const { description } = requestSwagger
-				// Print permission label only if is define in config
-				let permissionDescriptions = config.permissions ? getPermissionDescription(permissionObject) : ''
+				// handle description
+				let description: string = requestSwagger.description || ''
+
+				const hasDeprecatedFlag = description.startsWith('@deprecated')
+				if (hasDeprecatedFlag) {
+					description = description.replace('@deprecated', '').trim()
+				}
+
+				let permissionDescriptions = ''
 				if (config.permissions) {
 					if (config.permissionsDescriptionFormatter && typeof config.permissionsDescriptionFormatter === 'function') {
 						permissionDescriptions = config.permissionsDescriptionFormatter(permissionObject)
@@ -369,7 +377,9 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 						permissionDescriptions = getPermissionDescription(permissionObject)
 					}
 				}
-				const resultDescription = [description, permissionDescriptions].filter((v) => !!v).join(', ')
+
+				const resultDescription = [description, permissionDescriptions].filter((v) => !!v).join('<br>')
+
 				const operationId = camelCase(`${method}${path}`)
 				// TODO: implement summary in the future
 				const summary: any = undefined
@@ -385,6 +395,7 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 					requestBody,
 					resultDescription,
 					operationId,
+					hasDeprecatedFlag,
 					summary
 				)
 			} catch (e) {
