@@ -141,8 +141,8 @@ router.get(
 export const permissionMiddleware = (allowPermissions: string[]) => function permission(req: Request, res: Response, next: NextFunction) {
 	...
 }
-
 ```
+
 Adding description for endpoints.
 ```Typescript
 const userEndpointDesc = 'This is how to add swagger description for this endpoint'
@@ -158,8 +158,8 @@ export const requestSchema = Joi.object({
 		name: Joi.string().required()
 	})
 }).description(userEndpointDesc)
-
 ```
+
 Top level request .alternatives() or .alternatives().try()..
 ```Typescript
 export const requestSchema = Joi.object({
@@ -176,7 +176,6 @@ export const requestSchema = Joi.object({
         })
     )
 })
-
 ```
 ..displays request example as:
 ```JSON
@@ -193,9 +192,24 @@ export const requestSchema = Joi.object({
 }
 ```
 
+Marking endpoint as deprecated (by adding the @deprecated flag to the beginning of the description in the request schema).
+```Typescript
+export const requestSchema = Joi.object({
+	params: Joi.object({
+		userID: Joi.number()
+	}),
+	query: Joi.object({
+		search: Joi.string().required()
+	}),
+	body: Joi.object({
+		name: Joi.string().required()
+	})
+}).description('@deprecated Endpoint returns list of users.')
+```
+
 ## Result
 
-Generated SwaggerUI 
+Generated SwaggerUI
 
 ![Generated SwaggerUI](demo/example.png)
 
