@@ -137,7 +137,7 @@ router.get(
 		businessLogic
 	)
 
-//permissions middleware impelemntation
+//permissions middleware implementation
 export const permissionMiddleware = (allowPermissions: string[]) => function permission(req: Request, res: Response, next: NextFunction) {
 	...
 }
@@ -205,6 +205,19 @@ export const requestSchema = Joi.object({
 		name: Joi.string().required()
 	})
 }).description('@deprecated Endpoint returns list of users.')
+```
+
+Using shared schema by calling meta with className
+```Typescript
+export const userSchema = Joi.object({
+	id: Joi.number(),
+	name: Joi.string(),
+	surname: Joi.string()
+}).meta({ className: 'User' })
+
+export const responseSchema = Joi.object({
+	user: userSchema
+})
 ```
 
 ## Result

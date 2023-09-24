@@ -1,6 +1,6 @@
-import joiToSwagger from 'joi-to-swagger'
+import joiToSwagger, { ComponentsSchema } from 'joi-to-swagger'
 import Joi from 'joi'
-import { includes, map, camelCase } from 'lodash'
+import { includes, map, camelCase, merge } from 'lodash'
 
 // eslint-disable-next-line import/no-cycle
 import getSecurityScheme, { AUTH_METHOD, AUTH_SCOPE, IAuthenticationSchemeConfig } from './utils/authSchemes'
@@ -123,7 +123,7 @@ export interface ISwaggerInit {
 	security?: ISecurity
 }
 
-export function getSwaggerSchema(paths: IPath, config: IConfig): ISwagger {
+export function getSwaggerSchema(paths: IPath, components: ComponentsSchema, config: IConfig): ISwagger {
 	const { swaggerInitInfo } = config
 
 	return {
@@ -153,8 +153,9 @@ export function getSwaggerSchema(paths: IPath, config: IConfig): ISwagger {
 			url: 'http://swagger.io'
 		},
 		components: {
+			...components,
 			securitySchemes: swaggerInitInfo?.security ? getSecurityScheme(swaggerInitInfo.security.methods) : {},
-			schemas: undefined
+			schemas: components.schemas
 		},
 		security: swaggerInitInfo?.security?.scope === AUTH_SCOPE.GLOBAL ? map(swaggerInitInfo?.security?.methods, (method) => ({ [method.name]: [] })) : []
 	}
@@ -287,7 +288,7 @@ const getPermissionDescription = (permissions: { [groupName: string]: string[] }
 	).join('')}</ul>`
 }
 
-export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
+export function getPathSwagger(swagger: SwaggerInput, sharedComponents: ComponentsSchema, config: IConfig) {
 	const { path, tags, methods } = swagger
 
 	const methodsSwaggerObjects = methods
@@ -298,7 +299,8 @@ export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
 				const responsesSwagger = responses
 					.map((response: Response) => {
 						const { outputJoiSchema, code } = response
-						const { swagger: responseSwagger } = joiToSwagger(outputJoiSchema, null)
+						const { swagger: responseSwagger, components } = joiToSwagger(outputJoiSchema, sharedComponents)
+						merge(sharedComponents, components)
 						return createResponse(responseSwagger, code)
 					})
 					.reduce(
