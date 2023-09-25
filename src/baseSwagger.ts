@@ -1,4 +1,4 @@
-import joiToSwagger, { ComponentsSchema } from 'joi-to-swagger'
+import joiToSwagger, { ComponentsSchema, SwaggerSchema } from 'joi-to-swagger'
 import Joi from 'joi'
 import { includes, map, camelCase, merge } from 'lodash'
 
@@ -77,9 +77,9 @@ interface IRequest {
 }
 
 interface IComponents {
-	schemas: any
+	schemas?: SwaggerSchema
 	requestBodies?: string
-	securitySchemes?: any
+	securitySchemes?: SwaggerSchema
 }
 
 interface IPathMethods {
@@ -154,8 +154,7 @@ export function getSwaggerSchema(paths: IPath, components: ComponentsSchema, con
 		},
 		components: {
 			...components,
-			securitySchemes: swaggerInitInfo?.security ? getSecurityScheme(swaggerInitInfo.security.methods) : {},
-			schemas: components.schemas
+			securitySchemes: swaggerInitInfo?.security ? getSecurityScheme(swaggerInitInfo.security.methods) : {}
 		},
 		security: swaggerInitInfo?.security?.scope === AUTH_SCOPE.GLOBAL ? map(swaggerInitInfo?.security?.methods, (method) => ({ [method.name]: [] })) : []
 	}
