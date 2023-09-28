@@ -130,7 +130,7 @@ export function getSwaggerSchema(paths: IPath, components: ComponentsSchema, con
 		openapi: '3.1.0',
 		servers: swaggerInitInfo?.servers || [
 			{
-				url: 'localhost:8080'
+				url: 'http://localhost:8080'
 			}
 		],
 		info: {
