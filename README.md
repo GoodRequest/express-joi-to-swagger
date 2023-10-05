@@ -207,7 +207,9 @@ export const requestSchema = Joi.object({
 }).description('@deprecated Endpoint returns list of users.')
 ```
 
-Using shared schema by calling meta with className
+Using shared schema by calling `.meta` and specifying schema name in `className` property
+Shared schemas can be used inside requestSchema body or anywhere in responseSchema or errorResponseSchema
+
 ```Typescript
 export const userSchema = Joi.object({
 	id: Joi.number(),

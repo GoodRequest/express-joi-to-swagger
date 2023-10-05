@@ -253,20 +253,6 @@ export const createResponse = (
 	}
 })
 
-const prepAlternativesArray = (alts: any[]) =>
-	alts.reduce(
-		(acc: any, curr: any, index: number) => {
-			acc[`option_${index}`] = curr
-			return acc
-		},
-		{
-			warning: {
-				type: 'string',
-				enum: ['.alternatives() object - select 1 option only']
-			}
-		}
-	)
-
 const getPermissionDescription = (permissions: { [groupName: string]: string[] }) => {
 	const permissionsResult = 'Permissions:'
 
@@ -320,7 +306,8 @@ export function getPathSwagger(swagger: SwaggerInput, sharedComponents: Componen
 						headers: Joi.object()
 					})
 
-				const { swagger: requestSwagger } = joiToSwagger(requestSchema, null)
+				const { swagger: requestSwagger, components } = joiToSwagger(requestSchema, sharedComponents)
+				merge(sharedComponents, components)
 
 				const headerParameterArray =
 					map(requestSwagger.properties.headers?.properties, (schema, name) => ({
@@ -356,9 +343,8 @@ export function getPathSwagger(swagger: SwaggerInput, sharedComponents: Componen
 				}
 				if (method !== 'get') {
 					requestBody = {
-						type: 'object',
-						properties: requestSwagger.properties.body.anyOf ? prepAlternativesArray(requestSwagger.properties.body.anyOf) : requestSwagger.properties.body.properties,
-						required: requestSwagger.properties.body.required
+						...requestSwagger.properties.body,
+						type: 'object'
 					}
 				}
 
