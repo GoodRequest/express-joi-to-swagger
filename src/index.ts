@@ -1,40 +1,31 @@
-import { forEach } from 'lodash'
+import fs from 'node:fs'
+import path from 'node:path'
 import { Express } from 'express'
-import path from 'path'
-import fs from 'fs'
-import { ComponentsSchema } from 'joi-to-swagger'
-import generateUi from './ui'
-import parser, { IConfig } from './parser'
-import { getPathSwagger, getSwaggerSchema } from './baseSwagger'
 
-const getSwagger = async (app: Express, config: IConfig) => {
-	const endpoints = await parser(app, config)
+import generateUI from './ui'
+import parseEndpoints from './parser'
+import { generateSwaggerSchema } from './baseSwagger'
+import { IGenerateSwaggerConfig } from './types/interfaces'
 
-	let resultSwagger = {}
-	const sharedComponents: ComponentsSchema = {}
-	forEach(endpoints, (endpoint) => {
-		resultSwagger = {
-			...resultSwagger,
-			...getPathSwagger(endpoint, sharedComponents, config)
-		}
-	})
+const generateSwagger = async (app: Express, config: IGenerateSwaggerConfig) => {
+	// extract endpoints data from express app
+	const endpoints = await parseEndpoints(app, config)
 
-	const result = getSwaggerSchema(resultSwagger, sharedComponents, config)
+	// generate swagger schema from endpoints data
+	const swaggerSchema = generateSwaggerSchema(endpoints, config)
+
 	const outputPath = config.outputPath || process.cwd()
 	if (!fs.existsSync(outputPath)) {
 		fs.mkdirSync(outputPath)
 	}
+
+	// generate swagger ui (if enabled)
 	if (config.generateUI) {
-		await generateUi(outputPath, config)
+		await generateUI(outputPath, config)
 	}
-	await new Promise((resolve, reject) => {
-		fs.writeFile(path.join(outputPath, 'data.json'), JSON.stringify(result, null, '\t'), (err) => {
-			if (err) {
-				return reject(err)
-			}
-			return resolve(true)
-		})
-	})
+
+	// save swagger schema to file
+	await fs.promises.writeFile(path.join(outputPath, 'data.json'), JSON.stringify(swaggerSchema, null, '\t'))
 }
 
-export default getSwagger
+export default generateSwagger

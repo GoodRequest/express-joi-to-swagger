@@ -15,17 +15,20 @@ export const responseSchema = Joi.object({
 	})
 })
 
-export const businessLogic = (req: Request, res: Response, next: NextFunction) => {
+export const businessLogic = (_req: Request, res: Response, next: NextFunction) => {
 	try {
 		return res.json({
-			animals: [{
-				id: 1,
-				name: 'Monkey',
-				color: 'PINK'
-			}, {
-				id: 2,
-				name: 'Dog'
-			}]
+			animals: [
+				{
+					id: 1,
+					name: 'Monkey',
+					color: 'PINK'
+				},
+				{
+					id: 2,
+					name: 'Dog'
+				}
+			]
 		})
 	} catch (e) {
 		return next(e)

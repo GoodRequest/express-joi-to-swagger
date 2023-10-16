@@ -4,11 +4,12 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import CreateFileWebpack from 'create-file-webpack'
-import { IConfig } from '../parser'
 
-export default (outputPath: string, config: IConfig) =>
+import { IGenerateSwaggerConfig } from '../types/interfaces'
+
+export default (outputPath: string, config: IGenerateSwaggerConfig) =>
 	new Promise((resolve, reject) => {
-		const archiveJson = [{ name: config.swaggerInitInfo.info?.version || 'apidoc', url: 'data.json' }]
+		const archiveJson = [{ name: config.swaggerInitInfo?.info?.version || 'apidoc', url: 'data.json' }]
 		webpack(
 			{
 				mode: 'production',
@@ -46,7 +47,7 @@ export default (outputPath: string, config: IConfig) =>
 						content: JSON.stringify(archiveJson)
 					}),
 					new webpack.DefinePlugin({
-						APP_VERSION: config.swaggerInitInfo.info?.version ? JSON.stringify(config.swaggerInitInfo.info?.version) : undefined
+						APP_VERSION: config.swaggerInitInfo?.info?.version ? JSON.stringify(config.swaggerInitInfo.info.version) : undefined
 					})
 				],
 				output: {
@@ -55,7 +56,7 @@ export default (outputPath: string, config: IConfig) =>
 					clean: true
 				}
 			},
-			(err: any, info: any) => {
+			(err, info) => {
 				if (err) {
 					return reject(err)
 				}
