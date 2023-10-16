@@ -1,6 +1,6 @@
 import joiToSwagger, { ComponentsSchema, SwaggerSchema } from 'joi-to-swagger'
 import Joi from 'joi'
-import { includes, map, camelCase, merge } from 'lodash'
+import { includes, map, camelCase, merge, forEach, isEqual } from 'lodash'
 
 // eslint-disable-next-line import/no-cycle
 import getSecurityScheme, { AUTH_METHOD, AUTH_SCOPE, IAuthenticationSchemeConfig } from './utils/authSchemes'
@@ -253,20 +253,6 @@ export const createResponse = (
 	}
 })
 
-const prepAlternativesArray = (alts: any[]) =>
-	alts.reduce(
-		(acc: any, curr: any, index: number) => {
-			acc[`option_${index}`] = curr
-			return acc
-		},
-		{
-			warning: {
-				type: 'string',
-				enum: ['.alternatives() object - select 1 option only']
-			}
-		}
-	)
-
 const getPermissionDescription = (permissions: { [groupName: string]: string[] }) => {
 	const permissionsResult = 'Permissions:'
 
@@ -287,6 +273,20 @@ const getPermissionDescription = (permissions: { [groupName: string]: string[] }
 	).join('')}</ul>`
 }
 
+const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newComponents: ComponentsSchema) => {
+	forEach(newComponents, (schemas, schemaType) => {
+		if (existingComponents[schemaType]) {
+			forEach(schemas, (schema, schemaName) => {
+				if (existingComponents[schemaType][schemaName]) {
+					if (!isEqual(schema, existingComponents[schemaType][schemaName])) {
+						throw new Error(`Duplicate name for shared schema ${schemaName}`)
+					}
+				}
+			})
+		}
+	})
+}
+
 export function getPathSwagger(swagger: SwaggerInput, sharedComponents: ComponentsSchema, config: IConfig) {
 	const { path, tags, methods } = swagger
 
@@ -298,7 +298,8 @@ export function getPathSwagger(swagger: SwaggerInput, sharedComponents: Componen
 				const responsesSwagger = responses
 					.map((response: Response) => {
 						const { outputJoiSchema, code } = response
-						const { swagger: responseSwagger, components } = joiToSwagger(outputJoiSchema, sharedComponents)
+						const { swagger: responseSwagger, components } = joiToSwagger(outputJoiSchema)
+						checkUniqueSharedSchema(sharedComponents, components)
 						merge(sharedComponents, components)
 						return createResponse(responseSwagger, code)
 					})
@@ -320,7 +321,9 @@ export function getPathSwagger(swagger: SwaggerInput, sharedComponents: Componen
 						headers: Joi.object()
 					})
 
-				const { swagger: requestSwagger } = joiToSwagger(requestSchema, null)
+				const { swagger: requestSwagger, components } = joiToSwagger(requestSchema)
+				checkUniqueSharedSchema(sharedComponents, components)
+				merge(sharedComponents, components)
 
 				const headerParameterArray =
 					map(requestSwagger.properties.headers?.properties, (schema, name) => ({
@@ -356,9 +359,8 @@ export function getPathSwagger(swagger: SwaggerInput, sharedComponents: Componen
 				}
 				if (method !== 'get') {
 					requestBody = {
-						type: 'object',
-						properties: requestSwagger.properties.body.anyOf ? prepAlternativesArray(requestSwagger.properties.body.anyOf) : requestSwagger.properties.body.properties,
-						required: requestSwagger.properties.body.required
+						...requestSwagger.properties.body,
+						type: 'object'
 					}
 				}
 
