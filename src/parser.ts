@@ -5,12 +5,25 @@ import { Schema } from 'joi'
 import { locate } from './func-loc'
 import { ILocation } from './func-loc/cache-amanger.class'
 import { HttpCode, HttpMethod, IEndpoint, IGenerateSwaggerConfig, ISecurity } from './types/interfaces'
-import { AUTH_SCOPE } from './utils/enums'
+import { AUTH_SCOPE, httpCodes } from './utils/enums'
 
 const regexpExpressRegexp = /^\/\^\\\/(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\(\[\^\\\/]\+\?\)\)))\\\/.*/
 const expressRootRegexp = '/^\\/?(?=\\/|$)/i'
 const regexpExpressParamRegexp = /\(\?:\(\[\^\\\/]\+\?\)\)/g
 const stackItemValidNames = ['router', 'bound dispatch', 'mounted_app']
+
+const getHttpCode = (code?: string | null | undefined) => {
+	if (code) {
+		const codeInt = +code
+
+		const isKnownCode = httpCodes.includes(<any>codeInt)
+		if (isKnownCode) {
+			return codeInt as HttpCode
+		}
+	}
+
+	return null
+}
 
 /**
  * Returns all http methods detected for the provided route
@@ -244,7 +257,7 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 				const workflow = await import(workflowHandler.path)
 
 				// Handle request schema
-				if (config.requestSchemaName) {
+				if (config.requestSchemaName && workflow[config.requestSchemaName]) {
 					const auxRequestJoiSchema = workflow[config.requestSchemaName]
 					if (typeof auxRequestJoiSchema === 'function') {
 						const params = config.requestSchemaParams || []
@@ -255,15 +268,19 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 				}
 
 				// Handle response schema
-				if (config.responseSchemaName) {
+				if (config.responseSchemaName && workflow[config.responseSchemaName]) {
 					let responseJoiSchema = workflow[config.responseSchemaName]
 					if (typeof responseJoiSchema === 'function') {
 						const params = config.responseSchemaParams || []
 						responseJoiSchema = responseJoiSchema(...params)
 					}
+
+					// eslint-disable-next-line no-underscore-dangle
+					const httpCodeFromDesc = responseJoiSchema?._flags?.description
+
 					responses.push({
 						responseJoiSchema,
-						code: 200
+						code: getHttpCode(httpCodeFromDesc) || 200
 					})
 				}
 
@@ -271,11 +288,13 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 				if (config.errorResponseSchemaName) {
 					const errorResponseJoiSchemas = workflow[config.errorResponseSchemaName]
 					forEach(errorResponseJoiSchemas, (errorResponseJoiSchema) => {
+						// eslint-disable-next-line no-underscore-dangle
+						const httpCodeFromDesc = errorResponseJoiSchema?._flags?.description
+
 						responses.push({
 							responseJoiSchema: errorResponseJoiSchema,
 							// Accessing schema property
-							// eslint-disable-next-line no-underscore-dangle
-							code: errorResponseJoiSchema._flags.description
+							code: getHttpCode(httpCodeFromDesc) || 500
 						})
 					})
 				}

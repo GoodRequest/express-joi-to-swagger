@@ -77,17 +77,25 @@ const formatResponseDescription = (code: HttpCode, description?: string) => {
 		return 'Error response'
 	}
 
+	if (code >= 300) {
+		return 'Redirect response'
+	}
+
 	return 'Success response'
 }
 
 export const createResponseSwaggerSchema = (responseSchema: SwaggerSchema, code: HttpCode, description?: string) => ({
 	[code]: {
 		description: formatResponseDescription(code, description),
-		content: {
-			'application/json': {
-				schema: responseSchema
-			}
-		}
+		content:
+			// do not include response schema for 3xx codes (redirects)
+			code < 300 || code >= 400
+				? {
+						'application/json': {
+							schema: responseSchema
+						}
+				  }
+				: undefined
 	}
 })
 
