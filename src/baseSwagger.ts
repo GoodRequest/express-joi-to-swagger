@@ -281,7 +281,7 @@ export const generateSwaggerSchema = (endpoints: IEndpoint[], config: IGenerateS
 		openapi: '3.1.0',
 		servers: swaggerInitInfoConfig.servers || [
 			{
-				url: 'localhost:8080'
+				url: 'http://localhost:8080'
 			}
 		],
 		info: {
