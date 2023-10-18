@@ -192,7 +192,7 @@ export const requestSchema = Joi.object({
 }
 ```
 
-Marking endpoint as deprecated (by adding the @deprecated flag to the beginning of the description in the request schema).
+Marking endpoint as **deprecated** (by adding the `@deprecated` flag to the beginning of the description in the request schema).
 ```Typescript
 export const requestSchema = Joi.object({
 	params: Joi.object({
@@ -207,7 +207,7 @@ export const requestSchema = Joi.object({
 }).description('@deprecated Endpoint returns list of users.')
 ```
 
-Using shared schema by calling `.meta` and specifying schema name in `className` property
+Using shared schema by calling `.meta` and specifying schema name in `className` property.
 Shared schemas can be used inside requestSchema body or anywhere in responseSchema or errorResponseSchema
 
 ```Typescript
@@ -220,6 +220,24 @@ export const userSchema = Joi.object({
 export const responseSchema = Joi.object({
 	user: userSchema
 })
+```
+
+Setting custom **http status code** for response (both responseSchema and errorResponseSchema) by setting it in description of schema.
+```Typescript
+export const responseSchema = Joi.object({
+	id: Joi.number().integer().required()
+}).description('201')
+
+export const errorResponseSchemas = [
+	Joi.object({
+		messages: Joi.array().items(
+			Joi.object({
+				type: Joi.string().required(),
+				message: Joi.string().required().example('Not found')
+			})
+		)
+	}).description('404')
+]
 ```
 
 ## Result

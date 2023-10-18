@@ -10,7 +10,7 @@ export const requestSchema = Joi.object({
 
 export const responseSchema = Joi.object({
 	id: Joi.number().integer().required()
-})
+}).description('201')
 
 export const errorResponseSchemas = [
 	Joi.object({

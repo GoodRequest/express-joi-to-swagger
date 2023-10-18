@@ -1,6 +1,6 @@
 import { Schema } from 'joi'
 
-import { API_KEY_LOCATION, AUTH_METHOD, AUTH_SCOPE } from '../utils/enums'
+import { API_KEY_LOCATION, AUTH_METHOD, AUTH_SCOPE, httpCodes } from '../utils/enums'
 
 export interface IServer {
 	/**
@@ -136,7 +136,7 @@ export interface IGenerateSwaggerConfig {
 
 export type HttpMethod = 'get' | 'post' | 'patch' | 'put' | 'delete'
 
-export type HttpCode = 200 | 300 | 400 | 401 | 403 | 404 | 409
+export type HttpCode = (typeof httpCodes)[number]
 
 export type IEndpoint = {
 	path: string
