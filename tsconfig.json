@@ -6,15 +6,18 @@
     	"outDir": "./dist",
 		"sourceMap": true,
         "noImplicitAny": true,
+		"strictNullChecks": true,
 		"typeRoots" : [
             "./src/types",
             "node_modules/@types"
         ]
     },
+	"ts-node": {
+		"transpileOnly": true
+	},
     "include": [
         "./demo/**/*",
-		"./src/**/*",
-		"./tests/**/*"
+		"./src/**/*"
 	],
 	"exclude": [
 		"node_modules"
