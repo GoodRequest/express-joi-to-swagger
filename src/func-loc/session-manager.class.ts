@@ -1,7 +1,7 @@
 import { Debugger, Session } from 'inspector'
 import path from 'path'
 import { promisify } from 'util'
-import { v4 } from 'uuid'
+import { randomUUID as v4 } from 'node:crypto'
 
 import { CacheManager, ILocation } from './cache-amanger.class'
 import { Deferred } from './deffered.class'

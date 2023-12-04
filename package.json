@@ -8,6 +8,9 @@
 	},
 	"author": "Goodrequest",
 	"license": "MIT",
+	"engines": {
+		"node": ">=16"
+	},
 	"scripts": {
 		"prepublishOnly": "rm -rf dist && tsc --project tsconfig.build.json && copyfiles -f ./src/ui/index.html ./dist/ui",
 		"demo": "rm -rf demo/dist && node -r ts-node/register demo/index.ts",
@@ -26,33 +29,31 @@
 		"joi": "^17.7.0",
 		"joi-to-swagger": "github:GoodRequest/joi-to-swagger#cea5393",
 		"lodash": "4.17.21",
-		"passport": "0.6.0",
+		"passport": "0.7.0",
 		"passport-local": "1.0.0",
 		"stream-browserify": "3.0.0",
 		"style-loader": "3.3.3",
-		"swagger-ui-dist": "5.9.0",
+		"swagger-ui-dist": "5.10.3",
 		"ts-node": "10.9.1",
-		"uuid": "9.0.1",
 		"webpack": "5.89.0"
 	},
 	"devDependencies": {
 		"@goodrequest/eslint-config-typescript": "1.2.1",
 		"@types/copy-webpack-plugin": "10.1.0",
-		"@types/express": "4.17.17",
-		"@types/lodash": "4.14.195",
-		"@types/passport": "1.0.12",
-		"@types/passport-jwt": "3.0.8",
-		"@types/passport-local": "1.0.35",
+		"@types/express": "4.17.21",
+		"@types/lodash": "4.14.202",
+		"@types/passport": "1.0.16",
+		"@types/passport-jwt": "3.0.13",
+		"@types/passport-local": "1.0.38",
 		"@types/swagger-ui-dist": "3.30.2",
-		"@types/uuid": "9.0.5",
 		"@typescript-eslint/eslint-plugin": "5.60.0",
 		"copyfiles": "2.4.1",
-		"eslint": "8.51.0",
+		"eslint": "8.55.0",
 		"eslint-plugin-import": "2.28.1",
 		"eslint-plugin-prettier": "4.2.1",
 		"husky": "8.0.3",
 		"prettier": "2.8.8",
-		"typescript": "5.2.2"
+		"typescript": "5.3.2"
 	},
 	"description": "Solution that generates beatiful Swagger API documentation from code. 💻",
 	"bugs": {
