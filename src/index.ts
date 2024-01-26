@@ -12,7 +12,7 @@ const generateSwagger = async (app: Express, config: IGenerateSwaggerConfig) => 
 	const endpoints = await parseEndpoints(app, config)
 
 	// generate swagger schema from endpoints data
-	const swaggerSchema = generateSwaggerSchema(endpoints, config)
+	const generationResult = generateSwaggerSchema(endpoints, config)
 
 	const outputPath = config.outputPath || process.cwd()
 	if (!fs.existsSync(outputPath)) {
@@ -25,7 +25,8 @@ const generateSwagger = async (app: Express, config: IGenerateSwaggerConfig) => 
 	}
 
 	// save swagger schema to file
-	await fs.promises.writeFile(path.join(outputPath, 'data.json'), JSON.stringify(swaggerSchema, null, '\t'))
+	await fs.promises.writeFile(path.join(outputPath, 'data.json'), JSON.stringify(generationResult.swaggerSchema, null, '\t'))
+	return generationResult.swaggerSchemaErrors
 }
 
 export default generateSwagger
