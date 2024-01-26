@@ -41,8 +41,7 @@ const config: IGenerateSwaggerConfig = {
 			authMiddlewareName: 'authenticate'
 		}
 	},
-	tags: {},
-	filter: '.*users.*'
+	tags: {}
 }
 
 // Use case example
