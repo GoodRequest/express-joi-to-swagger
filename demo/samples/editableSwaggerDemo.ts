@@ -1,17 +1,20 @@
 import path from 'path'
-import { IConfig } from '../../src/parser'
 import { getSwaggerEditable } from '../../src/utils/editableSwagger'
+import { IGenerateSwaggerConfig } from '../../src/types/interfaces'
 
-const config: IConfig = {
+const config: IGenerateSwaggerConfig = {
 	outputPath: path.join(__dirname, '../outputSwagger.json'),
 	generateUI: false,
-	permissions: {
-		middlewareName: 'permission',
-		closure: 'permissionMiddleware',
-		paramName: 'allowPermissions'
-	},
+	permissions: [
+		{
+			middlewareName: 'permission',
+			closure: 'permissionMiddleware',
+			paramName: 'allowPermissions'
+		}
+	],
 	requestSchemaName: 'requestSchema',
 	responseSchemaName: 'responseSchema',
+	errorResponseSchemaName: 'errorResponseSchemas',
 	businessLogicName: 'businessLogic',
 	swaggerInitInfo: {
 		info: {

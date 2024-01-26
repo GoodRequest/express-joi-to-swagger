@@ -7,17 +7,11 @@ import * as postAnimalByFamily from './post.animalByFamily'
 const router = express.Router()
 
 export default () => {
-	router.get('/',
-		validationMiddleware(getAnimals.requestSchema),
-		getAnimals.businessLogic)
+	router.get('/', validationMiddleware(getAnimals.requestSchema), getAnimals.businessLogic)
 
-	router.post('/',
-		validationMiddleware(postAnimal.requestSchema),
-		postAnimal.businessLogic)
+	router.post('/', validationMiddleware(postAnimal.requestSchema), postAnimal.businessLogic)
 
-	router.post('/family',
-		validationMiddleware(postAnimalByFamily.requestSchema),
-		postAnimalByFamily.businessLogic)
+	router.post('/family', validationMiddleware(postAnimalByFamily.requestSchema), postAnimalByFamily.businessLogic)
 
 	return router
 }

@@ -1,17 +1,18 @@
 /* eslint-disable max-classes-per-file */
-import * as fs from 'fs'
-import { createResponse, ISwagger, methodType, ResponseCode } from '../baseSwagger'
-import { IConfig } from '../parser'
+import * as fs from 'node:fs'
+
+import { ISwaggerSchema, createResponseSwaggerSchema } from '../baseSwagger'
+import { HttpCode, HttpMethod, IGenerateSwaggerConfig } from '../types/interfaces'
 
 export interface IResponse {
 	joiSchema: any
-	code: ResponseCode
+	code: HttpCode
 	description?: string
 }
 
 export class PathEditable {
 	pathToSwaggerMethod: any
-	errorPath: string
+	errorPath?: string
 
 	constructor(pathToSwaggerMethod: unknown, errorPath?: string) {
 		this.pathToSwaggerMethod = pathToSwaggerMethod
@@ -19,7 +20,7 @@ export class PathEditable {
 	}
 
 	addResponse(response: IResponse) {
-		const newResponse = createResponse(response.joiSchema, response.code, response.description)
+		const newResponse = createResponseSwaggerSchema(response.joiSchema, response.code, response.description)
 		if (!this.pathToSwaggerMethod) {
 			console.error(`PathEditable init error for path: ${this.errorPath}`)
 			return
@@ -29,11 +30,11 @@ export class PathEditable {
 }
 
 export class SwaggerEditable {
-	config: IConfig
-	alternativeOutputPath?: string
-	instance: ISwagger
+	config: IGenerateSwaggerConfig
+	alternativeOutputPath: string | null
+	instance: ISwaggerSchema
 
-	constructor(config: IConfig, alternativeOutputPath: string = null) {
+	constructor(config: IGenerateSwaggerConfig, alternativeOutputPath: string | null = null) {
 		this.config = config
 		this.alternativeOutputPath = alternativeOutputPath
 		this.instance = this.get()
@@ -41,11 +42,11 @@ export class SwaggerEditable {
 
 	get() {
 		const obj = JSON.parse(fs.readFileSync(this.config.outputPath, 'utf8'))
-		const swaggerObj = obj as ISwagger
+		const swaggerObj = obj as ISwaggerSchema
 		return swaggerObj
 	}
 
-	getEditablePath(method: methodType, endpointPath: string): PathEditable {
+	getEditablePath(method: HttpMethod, endpointPath: string): PathEditable {
 		const pathDescription = `${method} '${endpointPath}'`
 		if (!this.instance) {
 			return new PathEditable(null, pathDescription)
@@ -68,4 +69,4 @@ export class SwaggerEditable {
 	}
 }
 
-export const getSwaggerEditable = (config: IConfig, alternativeOutputPath: string = null) => new SwaggerEditable(config, alternativeOutputPath)
+export const getSwaggerEditable = (config: IGenerateSwaggerConfig, alternativeOutputPath: string | null = null) => new SwaggerEditable(config, alternativeOutputPath)

@@ -1,22 +1,23 @@
 import path from 'path'
-import getSwagger from '../src'
 import app from './app'
-import { IConfig } from '../src/parser'
-import { AUTH_METHOD, AUTH_SCOPE } from '../src/utils/authSchemes'
+import generateSwagger from '../src'
+import { IGenerateSwaggerConfig } from '../src/types/interfaces'
+import { AUTH_METHOD, AUTH_SCOPE } from '../src/utils/enums'
 
-const mockTranslateFn = (v: any) => v
-
-const config: IConfig = {
+const config: IGenerateSwaggerConfig = {
 	outputPath: path.join(__dirname, 'dist'),
 	generateUI: true,
-	permissions: [{
-		middlewareName: 'permission',
-		closure: 'permissionMiddleware',
-		paramName: 'allowPermissions'
-	}],
+	permissions: [
+		{
+			middlewareName: 'permission',
+			closure: 'permissionMiddleware',
+			paramName: 'allowPermissions'
+		}
+	],
 	requestSchemaName: 'requestSchema',
-	requestSchemaParams: [mockTranslateFn],
+	requestSchemaParams: [(v: string) => v],
 	responseSchemaName: 'responseSchema',
+	errorResponseSchemaName: 'errorResponseSchemas',
 	businessLogicName: 'businessLogic',
 	swaggerInitInfo: {
 		info: {
@@ -25,14 +26,17 @@ const config: IConfig = {
 			version: '1.0.0-demo'
 		},
 		security: {
-			methods: [{
-				name: AUTH_METHOD.BASIC
-			}, {
-				name: AUTH_METHOD.BEARER,
-				config: {
-					bearerFormat: 'JWT'
+			methods: [
+				{
+					name: AUTH_METHOD.BASIC
+				},
+				{
+					name: AUTH_METHOD.BEARER,
+					config: {
+						bearerFormat: 'JWT'
+					}
 				}
-			}],
+			],
 			scope: AUTH_SCOPE.ENDPOINT,
 			authMiddlewareName: 'authenticate'
 		}
@@ -43,11 +47,15 @@ const config: IConfig = {
 
 // Use case example
 function workflow() {
-	getSwagger(app, config).then(() => {
-		console.log('DONE')
-	}).catch((e) => {
-		console.log('ERROR', e)
-	})
+	generateSwagger(app, config)
+		.then(() => {
+			// eslint-disable-next-line no-console
+			console.log('DONE')
+		})
+		.catch((e) => {
+			// eslint-disable-next-line no-console
+			console.log('ERROR', e)
+		})
 }
 
 // Start script

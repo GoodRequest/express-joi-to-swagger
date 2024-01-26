@@ -3,8 +3,8 @@
     "extends": "./tsconfig.json",
     "include": [
         // repeated from base config's "include" setting
+        "demo",
         "src",
-        "tests",
 
         // these are the eslint-only inclusions
         ".eslintrc.js",

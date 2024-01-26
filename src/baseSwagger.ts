@@ -1,260 +1,114 @@
-import joiToSwagger from 'joi-to-swagger'
+import joiToSwagger, { ComponentsSchema, SwaggerSchema } from 'joi-to-swagger'
 import Joi from 'joi'
-import { includes, map, camelCase } from 'lodash'
+import { includes, map, camelCase, merge, forEach, isEqual } from 'lodash'
 
-// eslint-disable-next-line import/no-cycle
-import getSecurityScheme, { AUTH_METHOD, AUTH_SCOPE, IAuthenticationSchemeConfig } from './utils/authSchemes'
-/* eslint-disable import/no-cycle */
-import { IConfig } from './parser'
+import getSecuritySchemes, { ISecuritySchemes } from './utils/authSchemes'
+import { AUTH_SCOPE } from './utils/enums'
+import { HttpCode, HttpMethod, IEndpoint, IExternalDocs, IGenerateSwaggerConfig, IInfo, ISecurity, IServer, ITag } from './types/interfaces'
 
-interface ExternalDocsS {
-	name?: string // Apache 2.0
-	url: string // http://www.apache.org/licenses/LICENSE-2.0.html
-	description: string
-}
-
-interface ILicense {
-	name: string // Apache 2.0
-	url: string // http://www.apache.org/licenses/LICENSE-2.0.html
-}
-
-interface ITag {
-	name: string // Apache 2.0
-	description: string
-	externalDocs?: ExternalDocsS
-}
-
-interface IContact {
-	email: string // apiteam@swagger.io
-}
-
-interface IInfo {
-	description?: string // This is a sample Pet Store
-	version?: string // 1.0.6-SNAPSHOT
-	title?: string // Swagger Petstore - OpenAPI 3.0
-	termsOfService?: string // http://swagger.io/terms/
-	contact?: IContact // http://swagger.io/terms/
-	license?: ILicense // http://swagger.io/terms/
-}
-
-interface IServer {
-	url: string // '/v3'
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface ISchema {}
-
-interface IResponse {
-	description?: string
-	content: any
-	'application/json'?: ISchema
-	'application/xml'?: ISchema
+interface IRequestParameter {
+	name: string
+	in: 'header' | 'query' | 'path'
+	schema: SwaggerSchema
+	required: boolean
+	description: string | undefined
 }
 
 interface IRequestBody {
-	description: string
-	required: boolean
-	content: any
-	operationId: string
-	responses: {
-		'200': IResponse
+	content: {
+		'application/json': {
+			schema: SwaggerSchema
+		}
 	}
-	security: any[]
-	requestBody: any[]
+}
+
+interface IResponse {
+	description: string
+	content: {
+		'application/json': {
+			schema: SwaggerSchema
+		}
+	}
 }
 
 interface IRequest {
-	tags: string[]
-	summary: string
-	description: string
 	operationId: string
+	description: string
+	summary: string | undefined
+	deprecated: boolean
+	tags: string[]
+	security: ISecurity[]
+	parameters: IRequestParameter[]
+	requestBody?: IRequestBody
 	responses: {
-		'200'?: IResponse
-		'405'?: IResponse
+		[code in HttpCode]?: IResponse
 	}
-	security: any[]
-	requestBody: IRequestBody
-}
-
-interface IComponents {
-	schemas: any
-	requestBodies?: string
-	securitySchemes?: any
-}
-
-interface IPathMethods {
-	get?: IRequest
-	post?: IRequest
-	put?: IRequest
-	delete?: IRequest
-	patch?: IRequest
 }
 
 interface IPath {
-	[key: string]: IPathMethods
+	[key: string]: {
+		[method in HttpMethod]?: IRequest
+	}
 }
 
-export interface ISecurityMethod {
-	name: AUTH_METHOD
-	config?: IAuthenticationSchemeConfig
+interface IComponents {
+	securitySchemes: ISecuritySchemes
+	schemas?: SwaggerSchema
+	requestBodies?: string
 }
 
-export interface ISecurity {
-	methods: ISecurityMethod[]
-	scope: AUTH_SCOPE
-	authMiddlewareName?: string
-}
-
-export interface ISwagger {
-	openapi: string // '3.0.2'
-	servers: IServer[] // '3.0.2'
-	info: IInfo
-	tags: ITag[]
-	externalDocs: ExternalDocsS
-	paths: IPath // requests
-	components: IComponents
-	security: any
-}
-
-export interface ISwaggerInit {
-	servers?: IServer[]
-	info?: IInfo
+export interface ISwaggerSchema {
+	openapi: string
+	servers: IServer[]
+	info: Required<IInfo>
 	tags?: ITag[]
-	security?: ISecurity
+	paths: IPath
+	externalDocs: IExternalDocs
+	components: IComponents
+	security: ISecurity[]
 }
 
-export function getSwaggerSchema(paths: IPath, config: IConfig): ISwagger {
-	const { swaggerInitInfo } = config
-
-	return {
-		openapi: '3.0.3',
-		servers: swaggerInitInfo?.servers || [
-			{
-				url: 'localhost:8080'
-			}
-		],
-		info: {
-			description: swaggerInitInfo?.info?.description || 'This is a sample Pet Store',
-			version: swaggerInitInfo?.info?.version || '1.0.6-SNAPSHOT',
-			title: swaggerInitInfo?.info?.title || 'Swagger Petstore - OpenAPI 3.0',
-			termsOfService: swaggerInitInfo?.info?.termsOfService || 'http://swagger.io/terms/',
-			contact: swaggerInitInfo?.info?.contact || {
-				email: 'apiteam@swagger.io'
-			},
-			license: swaggerInitInfo?.info?.license || {
-				name: 'Apache 2.0',
-				url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-			}
-		},
-		tags: swaggerInitInfo?.tags,
-		paths,
-		externalDocs: {
-			description: 'Find out more about Swagger',
-			url: 'http://swagger.io'
-		},
-		components: {
-			securitySchemes: swaggerInitInfo?.security ? getSecurityScheme(swaggerInitInfo.security.methods) : {},
-			schemas: undefined
-		},
-		security: swaggerInitInfo?.security?.scope === AUTH_SCOPE.GLOBAL ? map(swaggerInitInfo?.security?.methods, (method) => ({ [method.name]: [] })) : []
-	}
-}
-
-export type methodType = 'get' | 'post' | 'patch' | 'delete'
-
-export function getBaseMethod(
-	method: methodType,
-	tags: string[],
-	security: any,
-	headerParameterArray: any,
-	pathParameterArray: any,
-	queryParameterSchema: any,
-	responses: any,
-	requestBody: any,
-	description: string,
-	operationId: string,
-	summary?: string
-): IPathMethods {
-	let requestBodyObject: any = null
-	if (requestBody) {
-		requestBodyObject = {
-			requestBody: {
-				content: {
-					'application/json': {
-						schema: requestBody
-					}
-				}
-			}
-		}
+const formatResponseDescription = (code: HttpCode, description?: string) => {
+	if (description) {
+		return description
 	}
 
-	return {
-		[method]: {
-			tags,
-			security,
-			summary,
-			operationId,
-			description,
-			parameters: [...headerParameterArray, ...pathParameterArray, ...queryParameterSchema],
-			responses,
-			...requestBodyObject
-		}
+	if (code >= 400) {
+		return 'Error response'
 	}
+
+	if (code >= 300) {
+		return 'Redirect response'
+	}
+
+	return 'Success response'
 }
 
-interface Response {
-	outputJoiSchema: any
-	code: 200 | 300 | 400 | 401
-}
-
-interface SwaggerMethod {
-	method: methodType
-	responses: Response[]
-	requestJoiSchema?: any
-	permissions?: any
-	security: any
-}
-
-interface SwaggerInput {
-	path: string
-	tags: string[]
-	methods: SwaggerMethod[]
-	security: any
-}
-
-export type ResponseCode = 200 | 300 | 400 | 401 | 403 | 404 | 409
-
-export const createResponse = (
-	responseSchema: any,
-	code: ResponseCode, // TODO: add more response codes
-	description?: string
-) => ({
+export const createResponseSwaggerSchema = (responseSchema: SwaggerSchema, code: HttpCode, description?: string) => ({
 	[code]: {
-		description: description || 'Success response',
-		content: {
-			'application/json': {
-				schema: responseSchema
-			}
+		description: formatResponseDescription(code, description),
+		content:
+			// do not include response schema for 3xx codes (redirects)
+			code < 300 || code >= 400
+				? {
+						'application/json': {
+							schema: responseSchema
+						}
+				  }
+				: undefined
+	}
+})
+
+const createRequestBodySwaggerSchema = (requestBodyDataSchema: SwaggerSchema) => ({
+	content: {
+		'application/json': {
+			schema: requestBodyDataSchema
 		}
 	}
 })
 
-const prepAlternativesArray = (alts: any[]) =>
-	alts.reduce(
-		(acc: any, curr: any, index: number) => {
-			acc[`option_${index}`] = curr
-			return acc
-		},
-		{
-			warning: {
-				type: 'string',
-				enum: ['.alternatives() object - select 1 option only']
-			}
-		}
-	)
-
 const getPermissionDescription = (permissions: { [groupName: string]: string[] }) => {
-	const permissionsResult = 'permissions:'
+	const permissionsResult = 'Permissions:'
 
 	const permissionGroupNames = Object.keys(permissions)
 	const hasDefaultGroup = includes(permissionGroupNames, 'default')
@@ -269,128 +123,198 @@ const getPermissionDescription = (permissions: { [groupName: string]: string[] }
 
 	return `${permissionsResult}<ul>${map(
 		permissions,
-		(permisisonGroup, permisisonGroupName) => `<li>${permisisonGroupName}${permisisonGroup.length > 0 ? `: [${permisisonGroup.join(', ')}]` : ''}</li>`
+		(permissionGroup, permissionGroupName) => `<li>${permissionGroupName}${permissionGroup.length > 0 ? `: [${permissionGroup.join(', ')}]` : ''}</li>`
 	).join('')}</ul>`
 }
 
-export function getPathSwagger(swagger: SwaggerInput, config: IConfig) {
-	const { path, tags, methods } = swagger
+const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newComponents: ComponentsSchema) => {
+	forEach(newComponents, (schemas, schemaType) => {
+		if (existingComponents[schemaType]) {
+			forEach(schemas, (schema, schemaName) => {
+				const existingComponentSchema = existingComponents[schemaType]?.[schemaName]
 
-	const methodsSwaggerObjects = methods
-		.map((data: SwaggerMethod) => {
+				if (existingComponentSchema && !isEqual(schema, existingComponentSchema)) {
+					throw new Error(`Duplicate name for shared schema ${schemaName}`)
+				}
+			})
+		}
+	})
+}
+
+function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: ComponentsSchema, config: IGenerateSwaggerConfig) {
+	const { path, tags, methods } = endpoint
+
+	const endpointSwaggerSchema = methods
+		.map((methodData) => {
 			try {
-				const { method, responses, requestJoiSchema, permissions: permissionObject, security } = data
+				const { method, responses, permissions, security } = methodData
 
-				const responsesSwagger = responses
-					.map((response: Response) => {
-						const { outputJoiSchema, code } = response
-						const { swagger: responseSwagger } = joiToSwagger(outputJoiSchema, null)
-						return createResponse(responseSwagger, code)
+				// handle responses
+				const responsesSwaggerSchema = responses
+					.map((response) => {
+						const { responseJoiSchema, code } = response
+						const { swagger: responseJoiSchemaSwagger, components } = joiToSwagger(responseJoiSchema)
+
+						if (components) {
+							checkUniqueSharedSchema(sharedComponents, components)
+							merge(sharedComponents, components)
+						}
+
+						return createResponseSwaggerSchema(responseJoiSchemaSwagger, code)
 					})
 					.reduce(
-						(previousValue, currentValue) => ({
-							...previousValue,
-							...currentValue
+						(prev, responseSwaggerSchema) => ({
+							...prev,
+							...responseSwaggerSchema
 						}),
 						{}
 					)
 
-				// if request does not register schema, the empty one is needed
-				const requestSchema =
-					requestJoiSchema ||
-					Joi.object().keys({
+				// handle request
+
+				// if request does not contain joi schema, define empty one (since it is needed)
+				const requestJoiSchema =
+					methodData.requestJoiSchema ||
+					Joi.object({
 						body: Joi.object(),
 						query: Joi.object(),
 						params: Joi.object(),
 						headers: Joi.object()
 					})
 
-				const { swagger: requestSwagger } = joiToSwagger(requestSchema, null)
+				const { swagger: requestJoiSchemaSwagger, components } = joiToSwagger(requestJoiSchema)
 
-				const headerParameterArray =
-					map(requestSwagger.properties.headers?.properties, (schema, name) => ({
-						name,
-						in: 'header',
-						schema,
-						required: includes(requestSwagger.properties.headers.required, name),
-						description: schema.description || undefined
-					})) || []
-
-				const queryParameterArray =
-					map(requestSwagger.properties.query?.properties, (schema, name) => ({
-						name,
-						in: 'query',
-						schema,
-						required: includes(requestSwagger.properties.query.required, name),
-						description: schema.description || undefined
-					})) || []
-
-				const pathParameterArray =
-					map(requestSwagger.properties.params?.properties, (schema, name) => ({
-						name,
-						in: 'path',
-						schema,
-						required: true,
-						description: schema.description || undefined
-					})) || []
-
-				let requestBody: {
-					type: string
-					properties: any
-					required: boolean
-				}
-				if (method !== 'get' && method !== 'delete') {
-					requestBody = {
-						type: 'object',
-						properties: requestSwagger.properties.body.anyOf ? prepAlternativesArray(requestSwagger.properties.body.anyOf) : requestSwagger.properties.body.properties,
-						required: requestSwagger.properties.body.required
-					}
+				if (components) {
+					checkUniqueSharedSchema(sharedComponents, components)
+					merge(sharedComponents, components)
 				}
 
-				const { description } = requestSwagger
-				// Print permission label only if is define in config
-				let permissionDescriptions = config.permissions ? getPermissionDescription(permissionObject) : ''
+				const requestHeaderParametersSwaggerSchema = map(requestJoiSchemaSwagger.properties.headers?.properties, (schema, name) => ({
+					name,
+					in: 'header' as const,
+					schema,
+					required: includes(requestJoiSchemaSwagger.properties.headers.required, name),
+					description: (schema.description as string) || undefined
+				}))
+
+				const requestQueryParametersSwaggerSchema = map(requestJoiSchemaSwagger.properties.query?.properties, (schema, name) => ({
+					name,
+					in: 'query' as const,
+					schema,
+					required: includes(requestJoiSchemaSwagger.properties.query.required, name),
+					description: (schema.description as string) || undefined
+				}))
+
+				const requestPathParametersSwaggerSchema = map(requestJoiSchemaSwagger.properties.params?.properties, (schema, name) => ({
+					name,
+					in: 'path' as const,
+					schema,
+					required: true,
+					description: (schema.description as string) || undefined
+				}))
+
+				// handle description
+				let description: string = requestJoiSchemaSwagger.description || ''
+
+				const hasDeprecatedFlag = description.startsWith('@deprecated')
+				if (hasDeprecatedFlag) {
+					description = description.replace('@deprecated', '').trim()
+				}
+
+				let permissionDescription = ''
 				if (config.permissions) {
 					if (config.permissionsDescriptionFormatter && typeof config.permissionsDescriptionFormatter === 'function') {
-						permissionDescriptions = config.permissionsDescriptionFormatter(permissionObject)
+						permissionDescription = config.permissionsDescriptionFormatter(permissions)
 					} else {
-						permissionDescriptions = getPermissionDescription(permissionObject)
+						permissionDescription = getPermissionDescription(permissions)
 					}
 				}
-				const resultDescription = [description, permissionDescriptions].filter((v) => !!v).join(', ')
-				const operationId = camelCase(`${method}${path}`)
-				// TODO: implement summary in the future
-				const summary: any = undefined
 
-				return getBaseMethod(
-					method,
+				const resultDescription = [description, permissionDescription].filter((v) => !!v).join('<br>')
+
+				const operationId = camelCase(`${method}${path}`)
+
+				// TODO: implement summary in the future
+				const summary: string | undefined = undefined
+
+				const endpointMethodSwaggerSchema: IRequest = {
+					operationId,
+					description: resultDescription,
+					summary,
+					deprecated: hasDeprecatedFlag,
 					tags,
 					security,
-					headerParameterArray,
-					pathParameterArray,
-					queryParameterArray,
-					responsesSwagger,
-					requestBody,
-					resultDescription,
-					operationId,
-					summary
-				)
-			} catch (e) {
-				console.log(`ERROR with method:${data.method} ${path}`, e)
-				return null
+					parameters: [...requestHeaderParametersSwaggerSchema, ...requestQueryParametersSwaggerSchema, ...requestPathParametersSwaggerSchema],
+					responses: responsesSwaggerSchema
+				}
+
+				// handle request body
+				if (method !== 'get') {
+					const requestBodyDataJoiSchemaSwagger = requestJoiSchemaSwagger.properties.body
+
+					endpointMethodSwaggerSchema.requestBody = createRequestBodySwaggerSchema(requestBodyDataJoiSchemaSwagger)
+				}
+
+				return {
+					[method]: endpointMethodSwaggerSchema
+				}
+			} catch (err) {
+				// eslint-disable-next-line no-console
+				console.log(`ERROR with method:${methodData.method} ${path}`, err)
+				return {}
 			}
 		})
 		.reduce(
-			(previousValue, currentValue) => ({
-				...previousValue,
+			(prev, currentValue) => ({
+				...prev,
 				...currentValue
 			}),
 			{}
 		)
 
+	return endpointSwaggerSchema
+}
+
+export const generateSwaggerSchema = (endpoints: IEndpoint[], config: IGenerateSwaggerConfig): ISwaggerSchema => {
+	const swaggerInitInfoConfig = config.swaggerInitInfo || {}
+
+	const endpointsSwaggerSchema: IPath = {}
+	const sharedComponents: ComponentsSchema = {}
+
+	forEach(endpoints, (endpoint) => {
+		endpointsSwaggerSchema[endpoint.path] = generateEndpointSwaggerSchema(endpoint, sharedComponents, config)
+	})
+
 	return {
-		[path]: {
-			...methodsSwaggerObjects
-		}
+		openapi: '3.1.0',
+		servers: swaggerInitInfoConfig.servers || [
+			{
+				url: 'http://localhost:8080'
+			}
+		],
+		info: {
+			description: swaggerInitInfoConfig.info?.description || 'This is a sample Pet Store',
+			version: swaggerInitInfoConfig.info?.version || '1.0.6-SNAPSHOT',
+			title: swaggerInitInfoConfig.info?.title || 'Swagger Petstore - OpenAPI 3.0',
+			termsOfService: swaggerInitInfoConfig.info?.termsOfService || 'http://swagger.io/terms/',
+			contact: swaggerInitInfoConfig.info?.contact || {
+				email: 'apiteam@swagger.io'
+			},
+			license: swaggerInitInfoConfig.info?.license || {
+				name: 'Apache 2.0',
+				url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+			}
+		},
+		tags: swaggerInitInfoConfig.tags,
+		paths: endpointsSwaggerSchema,
+		externalDocs: {
+			description: 'Find out more about Swagger',
+			url: 'http://swagger.io'
+		},
+		components: {
+			...sharedComponents,
+			securitySchemes: getSecuritySchemes(swaggerInitInfoConfig.security?.methods || [])
+		},
+		security: swaggerInitInfoConfig.security?.scope === AUTH_SCOPE.GLOBAL ? map(swaggerInitInfoConfig.security?.methods, (method) => ({ [method.name]: [] })) : []
 	}
 }

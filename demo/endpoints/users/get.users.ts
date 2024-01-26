@@ -1,32 +1,27 @@
 import { NextFunction, Request, Response } from 'express'
 import Joi from 'joi'
+import { userSchema } from './get.user'
 
 export const requestSchema = Joi.object({
 	params: Joi.object(),
 	query: Joi.object(),
 	body: Joi.object()
-})
+}).description('@deprecated Endpoint returns list of users.')
 
-export const responseSchema = Joi.object({
-	animals: Joi.array().items({
-		id: Joi.number().integer().min(1).required(),
-		name: Joi.string().min(1).required(),
-		color: Joi.string().valid('BLUE', 'PINK', 'RED').optional()
+export const responseSchema = Joi.array().items(
+	Joi.object({
+		users: userSchema
 	})
-})
+)
 
 export const businessLogic = (_req: Request, res: Response, next: NextFunction) => {
 	try {
 		return res.json({
-			animals: [
+			users: [
 				{
 					id: 1,
-					name: 'Monkey',
-					color: 'PINK'
-				},
-				{
-					id: 2,
-					name: 'Dog'
+					name: 'John',
+					surname: 'Snow'
 				}
 			]
 		})

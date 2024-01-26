@@ -42,7 +42,7 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 ## Config parameters
 
 | Name										| Type   		| Required 			  |Description																			  						|
-| ------------------------------------------|---------------|:----------------------:|---------------------------------------------------------------------------------------------------- 			|
+| ------------------------------------------|-------------|:----------------------:|---------------------------------------------------------------------------------------------------- 			|
 | **outputPath**							| string  		|  ✅  | Path to directory where output JSON file should be created. 														                      						|
 | **generateUI**							| boolean 		|  ✅  | Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated.					                                                  						|
 | **permissions**							| object  		|  ❌  | Configuration parameters for parsing permissions.
@@ -55,6 +55,7 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 | **responseSchemaName**					| string  		|  ❌  | Name of the Joi schema object defining response structure.     |
 | **requestSchemaParams**					| any[]			|  ❌  | Param for ability to pass mock params for requestSchema			|
 | **responseSchemaParams**					| any[]			|  ❌  | Param for ability to pass mock params for responseSchema			|
+| **errorResponseSchemaName**				| string	    |  ❌  | Name of the Joi schema object defining error responses structure.	 |
 | **businessLogicName**						| string  		|  ✅  | Name of the function responsible for handling business logic of the request.     |
 | **swaggerInitInfo**						| ISwaggerInit 	|  ❌  | Swagger initial information.      |
 | **swaggerInitInfo**.servers				| IServer[] 	|  ❌  | List of API servers     |
@@ -97,6 +98,7 @@ const config: IConfig = {
 	requestSchemaName: 'requestSchema',
 	requestSchemaParams: [mockFn],
 	responseSchemaName: 'responseSchema',
+	errorResponseSchemaName: 'errorResponseSchemas',
 	businessLogicName: 'businessLogic',
 	swaggerInitInfo: {
 		info: {
@@ -135,12 +137,12 @@ router.get(
 		businessLogic
 	)
 
-//permissions middleware impelemntation
+//permissions middleware implementation
 export const permissionMiddleware = (allowPermissions: string[]) => function permission(req: Request, res: Response, next: NextFunction) {
 	...
 }
-
 ```
+
 Adding description for endpoints.
 ```Typescript
 const userEndpointDesc = 'This is how to add swagger description for this endpoint'
@@ -156,8 +158,8 @@ export const requestSchema = Joi.object({
 		name: Joi.string().required()
 	})
 }).description(userEndpointDesc)
-
 ```
+
 Top level request .alternatives() or .alternatives().try()..
 ```Typescript
 export const requestSchema = Joi.object({
@@ -174,7 +176,6 @@ export const requestSchema = Joi.object({
         })
     )
 })
-
 ```
 ..displays request example as:
 ```JSON
@@ -191,9 +192,57 @@ export const requestSchema = Joi.object({
 }
 ```
 
+Marking endpoint as **deprecated** (by adding the `@deprecated` flag to the beginning of the description in the request schema).
+```Typescript
+export const requestSchema = Joi.object({
+	params: Joi.object({
+		userID: Joi.number()
+	}),
+	query: Joi.object({
+		search: Joi.string().required()
+	}),
+	body: Joi.object({
+		name: Joi.string().required()
+	})
+}).description('@deprecated Endpoint returns list of users.')
+```
+
+Using shared schema by calling `.meta` and specifying schema name in `className` property.
+Shared schemas can be used inside requestSchema body or anywhere in responseSchema or errorResponseSchema
+
+```Typescript
+export const userSchema = Joi.object({
+	id: Joi.number(),
+	name: Joi.string(),
+	surname: Joi.string()
+}).meta({ className: 'User' })
+
+export const responseSchema = Joi.object({
+	user: userSchema
+})
+```
+
+Setting custom **http status code** for response (both responseSchema and errorResponseSchema) by setting it in description of schema.
+```Typescript
+export const responseSchema = Joi.object({
+	id: Joi.number().integer().required()
+}).description('201')
+
+export const errorResponseSchemas = [
+	Joi.object({
+		messages: Joi.array().items(
+			Joi.object({
+				type: Joi.string().required(),
+				message: Joi.string().required().example('Not found')
+			})
+		)
+	}).description('404')
+]
+```
+
 ## Result
 
-Generated SwaggerUI 
+Generated SwaggerUI
 
 ![Generated SwaggerUI](demo/example.png)
 

@@ -1,12 +1,13 @@
 import React from 'react'
-import { forEach, filter, trim, every } from 'lodash'
+import { trim, every } from 'lodash'
+
 import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist'
 import Topbar from './Topbar'
 
 import 'swagger-ui-dist/swagger-ui.css'
 import './custom.css'
 
-const AdvancedFilterPlugin = (system) => ({
+const AdvancedFilterPlugin = () => ({
 	fn: {
 		opsFilter: (taggedOps, phrase) => {
 			const normPhrases = trim(phrase)
@@ -14,29 +15,38 @@ const AdvancedFilterPlugin = (system) => ({
 				.split(' ')
 				.filter((v) => !!v)
 				.map((v) => trim(v))
-			const normalTaggedOps = JSON.parse(JSON.stringify(taggedOps))
-			forEach(normalTaggedOps, (tagObj, key) => {
-				const operations = filter(tagObj.operations, (operation) => {
-					const hasEvery = every(normPhrases, (normPhrase) => {
-						// search on path
-						const path = operation.path.toLowerCase().indexOf(normPhrase) !== -1
-						// search on tags
-						const tags = operation.operation.tags.filter((tag) => tag.toLowerCase().indexOf(normPhrase) !== -1)
 
-						if (!path && tags.length <= 0) {
-							return false
+			const filteredData = taggedOps
+				.map((entities) => {
+					const newentities = entities.map((entity, key) => {
+						if (key === 'operations') {
+							const operations = entity.filter((operation) => {
+								const hasEvery = every(normPhrases, (normPhrase) => {
+									// search on path
+									const path = operation.get('path').toLowerCase().indexOf(normPhrase) !== -1
+
+									// search on tags
+									const tags = operation
+										.get('operation')
+										.get('tags')
+										.filter((tag) => tag.toLowerCase().indexOf(normPhrase) !== -1)
+
+									if (!path && tags.size <= 0) {
+										return false
+									}
+									return true
+								})
+								return hasEvery
+							})
+							return operations
 						}
-						return true
+						return entity
 					})
-					return hasEvery
+					return newentities
 				})
-				if (operations.length === 0) {
-					delete normalTaggedOps[key]
-				} else {
-					normalTaggedOps[key].operations = operations
-				}
-			})
-			return system.Im.fromJS(normalTaggedOps)
+				.filter((entities) => !(entities.get('operations').size <= 0))
+
+			return filteredData
 		}
 	}
 })
@@ -51,8 +61,8 @@ const CustomTopbarPlugin = () => {
 	}
 }
 
-// eslint-disable-next-line no-undef
-fetch(`archive.json?v=${APP_VERSION}`)
+// eslint-disable-next-line no-undef, no-void
+void fetch(`archive.json?v=${APP_VERSION}`)
 	.then((response) => response.json())
 	.then((data) => {
 		SwaggerUIBundle({

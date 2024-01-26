@@ -1,76 +1,77 @@
 {
-  "name": "@goodrequest/express-joi-to-swagger",
-  "version": "0.10.1",
-  "main": "dist/index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/GoodRequest/express-joi-to-swagger.git"
-  },
-  "author": "Goodrequest",
-  "license": "MIT",
-  "scripts": {
-    "prepublishOnly": "rm -rf dist && tsc --project tsconfig.build.json && copyfiles -f ./src/ui/index.html ./dist/ui",
-    "demo": "rm -rf demo/dist && node -r ts-node/register demo/index.ts",
-    "lint": "eslint src tests --color --ext .js --ext .ts",
-    "type-check": "tsc --project tsconfig.json --noEmit"
-  },
-  "files": [
-    "dist"
-  ],
-  "dependencies": {
-    "@types/react": "17.0.0",
-    "buffer": "6.0.3",
-    "create-file-webpack": "1.0.2",
-    "css-loader": "6.7.2",
-    "express": "4.18.2",
-    "html-webpack-plugin": "5.5.0",
-    "joi": "^17.6.1",
-    "joi-to-swagger": "github:GoodRequest/joi-to-swagger",
-    "lodash": "4.17.21",
-    "openapi-diff": "0.23.6",
-    "passport": "0.6.0",
-    "passport-local": "1.0.0",
-    "rc-select": "9.0.0",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
-    "stream-browserify": "3.0.0",
-    "style-loader": "3.3.1",
-    "swagger-ui-dist": "4.15.5",
-    "ts-node": "10.9.1",
-    "uuid": "9.0.0",
-    "webpack": "5.75.0"
-  },
-  "devDependencies": {
-    "@goodrequest/eslint-config-typescript": "1.2.0",
-    "@types/copy-webpack-plugin": "10.1.0",
-    "@types/express": "4.17.14",
-    "@types/lodash": "4.14.189",
-    "@types/passport": "1.0.11",
-    "@types/passport-jwt": "3.0.7",
-    "@types/passport-local": "1.0.34",
-    "@types/swagger-ui-dist": "3.30.1",
-    "@types/uuid": "8.3.4",
-    "@typescript-eslint/eslint-plugin": "5.44.0",
-    "copyfiles": "2.4.1",
-    "eslint": "8.28.0",
-    "eslint-plugin-import": "2.26.0",
-    "eslint-plugin-prettier": "4.2.1",
-    "husky": "8.0.2",
-    "prettier": "2.8.0",
-    "ts-loader": "9.4.2",
-    "typescript": "4.9.3"
-  },
-  "description": "Solution that generates beatiful Swagger API documentation from code. 💻",
-  "bugs": {
-    "url": "https://github.com/GoodRequest/express-joi-to-swagger/issues"
-  },
-  "homepage": "https://github.com/GoodRequest/express-joi-to-swagger#readme",
-  "directories": {
-    "test": "tests"
-  },
-  "keywords": [
-    "express",
-    "joi",
-    "swagger"
-  ]
+	"name": "@goodrequest/express-joi-to-swagger",
+	"version": "1.0.2",
+	"main": "dist/index.js",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/GoodRequest/express-joi-to-swagger.git"
+	},
+	"author": "Goodrequest",
+	"license": "MIT",
+	"engines": {
+		"node": ">=16"
+	},
+	"scripts": {
+		"prepublishOnly": "rm -rf dist && tsc --project tsconfig.build.json && copyfiles -f ./src/ui/index.html ./dist/ui",
+		"demo": "rm -rf demo/dist && node -r ts-node/register demo/index.ts",
+		"lint": "eslint src --color --ext .js --ext .ts",
+		"type-check": "tsc --project tsconfig.json --noEmit"
+	},
+	"files": [
+		"dist"
+	],
+	"dependencies": {
+		"buffer": "6.0.3",
+		"create-file-webpack": "1.0.2",
+		"css-loader": "6.8.1",
+		"express": "4.18.2",
+		"html-webpack-plugin": "5.5.3",
+		"joi": "^17.7.0",
+		"joi-to-swagger": "github:GoodRequest/joi-to-swagger#cea5393",
+		"lodash": "4.17.21",
+		"passport": "0.7.0",
+		"passport-local": "1.0.0",
+		"stream-browserify": "3.0.0",
+		"style-loader": "3.3.3",
+		"swagger-ui-dist": "5.10.3",
+		"ts-node": "10.9.1",
+		"webpack": "5.89.0",
+		"openapi-diff": "0.23.6",
+		"rc-select": "9.0.0",
+		"react": "17.0.2",
+		"react-dom": "17.0.2"
+	},
+	"devDependencies": {
+		"@goodrequest/eslint-config-typescript": "1.2.1",
+		"@types/copy-webpack-plugin": "10.1.0",
+		"@types/express": "4.17.21",
+		"@types/lodash": "4.14.202",
+		"@types/passport": "1.0.16",
+		"@types/passport-jwt": "3.0.13",
+		"@types/passport-local": "1.0.38",
+		"@types/swagger-ui-dist": "3.30.2",
+		"@typescript-eslint/eslint-plugin": "5.60.0",
+		"copyfiles": "2.4.1",
+		"eslint": "8.55.0",
+		"eslint-plugin-import": "2.28.1",
+		"eslint-plugin-prettier": "4.2.1",
+		"husky": "8.0.3",
+		"prettier": "2.8.8",
+		"ts-loader": "9.4.2",
+		"typescript": "5.3.2"
+
+	},
+	"description": "Solution that generates beatiful Swagger API documentation from code. 💻",
+	"bugs": {
+		"url": "https://github.com/GoodRequest/express-joi-to-swagger/issues"
+	},
+	"homepage": "https://github.com/GoodRequest/express-joi-to-swagger#readme",
+	"directories": {
+		"test": "tests"
+	},
+	"keywords": [
+		"express",
+		"joi",
+		"swagger"
+	]
 }
