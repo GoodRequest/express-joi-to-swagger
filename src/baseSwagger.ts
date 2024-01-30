@@ -280,6 +280,13 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 	return endpointSwaggerSchema
 }
 
+/**
+ * Generates swagger schema for API documentation
+ * @param endpoints is an array of endpoints used in a project
+ * @param config swagger configuration
+ * @return { swaggerSchema, swaggerSchemaErrors } object which contains an attr. 'swaggerSchema' with all generated swagger schemas
+ * and an attr. 'swaggerSchemaErrors' with the same structure, which contains all errors occurred during API schemas generation
+ * */
 export const generateSwaggerSchema = (
 	endpoints: IEndpoint[],
 	config: IGenerateSwaggerConfig
