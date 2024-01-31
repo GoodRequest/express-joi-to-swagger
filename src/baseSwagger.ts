@@ -148,7 +148,7 @@ const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newCompon
 function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: ComponentsSchema, config: IGenerateSwaggerConfig): { [key: string]: IRequest | IErrorRequest } {
 	const { path, tags, methods } = endpoint
 	const endpointSwaggerSchema = methods
-		.map((methodData, index) => {
+		.map((methodData) => {
 			try {
 				const { method, responses, permissions, security } = methodData
 				// handle responses
@@ -262,7 +262,7 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 				}
 			} catch (err) {
 				return {
-					[endpoint.methods[index].method]: {
+					[methodData.method]: {
 						error: err,
 						description: `***\n${err.message}\n***`
 					}
