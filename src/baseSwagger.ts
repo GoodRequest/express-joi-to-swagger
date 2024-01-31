@@ -44,6 +44,10 @@ interface IRequest {
 		[code in HttpCode]?: IResponse
 	}
 }
+export interface IErrorRequest {
+	description: string
+	error: Error
+}
 
 interface IPath {
 	[key: string]: {
@@ -141,14 +145,12 @@ const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newCompon
 	})
 }
 
-function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: ComponentsSchema, config: IGenerateSwaggerConfig) {
+function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: ComponentsSchema, config: IGenerateSwaggerConfig): { [key: string]: IRequest | IErrorRequest } {
 	const { path, tags, methods } = endpoint
-
 	const endpointSwaggerSchema = methods
 		.map((methodData) => {
 			try {
 				const { method, responses, permissions, security } = methodData
-
 				// handle responses
 				const responsesSwaggerSchema = responses
 					.map((response) => {
@@ -259,9 +261,12 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 					[method]: endpointMethodSwaggerSchema
 				}
 			} catch (err) {
-				// eslint-disable-next-line no-console
-				console.log(`ERROR with method:${methodData.method} ${path}`, err)
-				return {}
+				return {
+					[methodData.method]: {
+						error: err,
+						description: `***\n${err.message}\n***`
+					}
+				}
 			}
 		})
 		.reduce(
@@ -275,17 +280,39 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 	return endpointSwaggerSchema
 }
 
-export const generateSwaggerSchema = (endpoints: IEndpoint[], config: IGenerateSwaggerConfig): ISwaggerSchema => {
+/**
+ * Generates swagger schema for API documentation
+ * @param endpoints is an array of endpoints used in a project
+ * @param config swagger configuration
+ * @return { swaggerSchema, swaggerSchemaErrors } object which contains an attr. 'swaggerSchema' with all generated swagger schemas
+ * and an attr. 'swaggerSchemaErrors' with the same structure, which contains all errors occurred during API schemas generation
+ * */
+export const generateSwaggerSchema = (
+	endpoints: IEndpoint[],
+	config: IGenerateSwaggerConfig
+): { swaggerSchema: ISwaggerSchema; swaggerSchemaErrors: { [path: string]: { [method: string]: Error } } } => {
 	const swaggerInitInfoConfig = config.swaggerInitInfo || {}
 
 	const endpointsSwaggerSchema: IPath = {}
 	const sharedComponents: ComponentsSchema = {}
-
+	let swaggerSchemaErrors: null | NonNullable<any> = null
 	forEach(endpoints, (endpoint) => {
-		endpointsSwaggerSchema[endpoint.path] = generateEndpointSwaggerSchema(endpoint, sharedComponents, config)
+		const swaggerSchema = generateEndpointSwaggerSchema(endpoint, sharedComponents, config)
+		endpointsSwaggerSchema[endpoint.path] = { ...swaggerSchema }
+		Object.keys(swaggerSchema).forEach((methodKey) => {
+			if ((swaggerSchema[methodKey] as any).error) {
+				if (!swaggerSchemaErrors) {
+					swaggerSchemaErrors = {}
+				}
+				if (!swaggerSchemaErrors[endpoint.path]) {
+					swaggerSchemaErrors[endpoint.path] = {}
+				}
+				swaggerSchemaErrors[endpoint.path][methodKey] = (swaggerSchema[methodKey] as any).error
+			}
+		})
 	})
 
-	return {
+	const swaggerSchema = {
 		openapi: '3.1.0',
 		servers: swaggerInitInfoConfig.servers || [
 			{
@@ -316,5 +343,10 @@ export const generateSwaggerSchema = (endpoints: IEndpoint[], config: IGenerateS
 			securitySchemes: getSecuritySchemes(swaggerInitInfoConfig.security?.methods || [])
 		},
 		security: swaggerInitInfoConfig.security?.scope === AUTH_SCOPE.GLOBAL ? map(swaggerInitInfoConfig.security?.methods, (method) => ({ [method.name]: [] })) : []
+	}
+
+	return {
+		swaggerSchema,
+		swaggerSchemaErrors
 	}
 }
