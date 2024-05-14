@@ -1,8 +1,6 @@
 import webpack from 'webpack'
 import path from 'path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import CreateFileWebpack from 'create-file-webpack'
 
 import { IGenerateSwaggerConfig } from '../types/interfaces'
