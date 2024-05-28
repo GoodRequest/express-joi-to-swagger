@@ -42,7 +42,8 @@ const config: IGenerateSwaggerConfig = {
 		}
 	},
 	tags: {},
-	filter: '.*users.*'
+	filter: '.*users.*',
+	groupVersionRegex: /api\/(?<version>v\d+)\/.+/d
 }
 
 // Use case example
