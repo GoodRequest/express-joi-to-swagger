@@ -13,7 +13,7 @@
 	},
 	"scripts": {
 		"prepublishOnly": "rm -rf dist && tsc --project tsconfig.build.json && copyfiles -f ./src/ui/index.html ./dist/ui",
-		"demo": "rm -rf demo/dist && node --inspect-brk -r ts-node/register demo/index.ts",
+		"demo": "rm -rf demo/dist && node -r ts-node/register demo/index.ts",
 		"lint": "eslint src --color --ext .js --ext .ts",
 		"type-check": "tsc --project tsconfig.json --noEmit"
 	},
