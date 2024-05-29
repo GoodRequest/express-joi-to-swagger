@@ -47,7 +47,7 @@ export const markOldEndpointsAsDeprecated = (swaggerSchema: ISwaggerSchema, depr
 		 * if it does, generate group key for endpoint
 		 *
 		 * @example
-		 * - groupVersionRegex: /api\/(?<version>v\d+)\/.+/d
+		 * - groupVersionRegex: /api\/(?<version>v\d+)\/.+/
 		 * - endpoints
 		 * 	- GET api/v1/users
 		 * 	- GET api/v2/users
