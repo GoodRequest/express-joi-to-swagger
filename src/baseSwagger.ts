@@ -1,6 +1,6 @@
 import joiToSwagger, { ComponentsSchema, SwaggerSchema } from 'joi-to-swagger'
 import Joi from 'joi'
-import { includes, map, camelCase, merge, forEach, isEqual } from 'lodash'
+import { includes, map, camelCase, merge, forEach, isEqual, isEmpty } from 'lodash'
 
 import getSecuritySchemes, { ISecuritySchemes } from './utils/authSchemes'
 import { AUTH_SCOPE } from './utils/enums'
@@ -51,13 +51,13 @@ interface IErrorRequest {
 
 interface IPaths {
 	[key: string]: {
-		[method in HttpMethod]?: IRequest
+		[method in HttpMethod]?: IRequest | IErrorRequest
 	}
 }
 
 interface IErrorPaths {
 	[key: string]: {
-		[method in HttpMethod]?: IErrorRequest
+		[method in HttpMethod]?: IErrorRequest['error']
 	}
 }
 
@@ -308,16 +308,18 @@ export const generateSwaggerSchema = (endpoints: IEndpoint[], config: IGenerateS
 	forEach(endpoints, (endpoint) => {
 		const endpointSwaggerSchema = generateEndpointSwaggerSchema(endpoint, sharedComponents, config)
 
-		endpointsSwaggerSchema[endpoint.path] = {}
-		swaggerSchemaErrors[endpoint.path] = {}
+		endpointsSwaggerSchema[endpoint.path] = endpointSwaggerSchema
+		const endpointSwaggerSchemaErrors: IErrorPaths[string] = {}
 
 		forEach(endpointSwaggerSchema, (endpointSwaggerSchemaItem, method: HttpMethod) => {
 			if ('error' in endpointSwaggerSchemaItem) {
-				swaggerSchemaErrors[endpoint.path][method] = endpointSwaggerSchemaItem
-			} else {
-				endpointsSwaggerSchema[endpoint.path][method] = endpointSwaggerSchemaItem
+				endpointSwaggerSchemaErrors[method] = endpointSwaggerSchemaItem.error
 			}
 		})
+
+		if (!isEmpty(endpointSwaggerSchemaErrors)) {
+			swaggerSchemaErrors[endpoint.path] = endpointSwaggerSchemaErrors
+		}
 	})
 
 	const swaggerSchema: ISwaggerSchema = {
