@@ -303,19 +303,25 @@ export const generateSwaggerSchema = (endpoints: IEndpoint[], config: IGenerateS
 
 	const endpointsSwaggerSchema: IPaths = {}
 	const sharedComponents: ComponentsSchema = {}
-	const swaggerSchemaErrors: IErrorPaths = {}
+	let swaggerSchemaErrors: IErrorPaths | undefined
 
 	forEach(endpoints, (endpoint) => {
 		const endpointSwaggerSchema = generateEndpointSwaggerSchema(endpoint, sharedComponents, config)
 
-		endpointsSwaggerSchema[endpoint.path] = {}
-		swaggerSchemaErrors[endpoint.path] = {}
-
 		forEach(endpointSwaggerSchema, (endpointSwaggerSchemaItem, method: HttpMethod) => {
 			if ('error' in endpointSwaggerSchemaItem) {
-				swaggerSchemaErrors[endpoint.path][method] = endpointSwaggerSchemaItem
+				swaggerSchemaErrors = {
+					...(swaggerSchemaErrors || {}),
+					[endpoint.path]: {
+						...(swaggerSchemaErrors?.[endpoint.path] || {}),
+						[method]: endpointSwaggerSchemaItem
+					}
+				}
 			} else {
-				endpointsSwaggerSchema[endpoint.path][method] = endpointSwaggerSchemaItem
+				endpointsSwaggerSchema[endpoint.path] = {
+					...(endpointsSwaggerSchema[endpoint.path] || {}),
+					[method]: endpointSwaggerSchemaItem
+				}
 			}
 		})
 	})
