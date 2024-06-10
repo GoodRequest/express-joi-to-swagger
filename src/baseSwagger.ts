@@ -55,7 +55,7 @@ interface IPaths {
 	}
 }
 
-interface IErrorPaths {
+export interface IErrorPaths {
 	[key: string]: {
 		[method in HttpMethod]?: IErrorRequest['error']
 	}

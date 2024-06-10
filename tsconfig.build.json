@@ -7,10 +7,12 @@
 		"sourceMap": true,
         "noImplicitAny": true,
 		"declaration": true,
+		"strictNullChecks": true,
 		"skipLibCheck": true,
 		"allowJs": true,
 		"typeRoots" : [
             "./src/types",
+			"node_modules/@types"
         ]
     },
     "include": [
