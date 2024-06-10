@@ -80,7 +80,8 @@ export const markOldEndpointsAsDeprecated = (swaggerSchema: ISwaggerSchema, depr
 					// mark all versions of endpoint as deprecated (except last one -> latest version)
 					if (index < endpointPaths.length - 1) {
 						const target = swaggerSchema.paths[endpointPath][method]
-						if (target) {
+						// 'operationId' in target Check if targe is IRequest
+						if (target && 'operationId' in target) {
 							target.deprecated = true
 						}
 					}
