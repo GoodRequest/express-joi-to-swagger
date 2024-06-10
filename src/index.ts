@@ -31,6 +31,7 @@ const generateSwagger = async (app: Express, config: IGenerateSwaggerConfig) => 
 
 	// save swagger schema to file
 	await fs.promises.writeFile(path.join(outputPath, 'data.json'), JSON.stringify(generationResult.swaggerSchema, null, '\t'))
+
 	return generationResult.swaggerSchemaErrors
 }
 

@@ -76,7 +76,7 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 | **tags**.tagSeparator 					| string		| 	❌	| String used to join parsed tags. |
 | **tags**.versioning 						| boolean		| 	❌	| If you are using multiple versions of API, you can separate endpoints also by API version. In this case it is necessary to define param **"baseUrlSegmentsLength"**. |
 | **tags**.versionSeparator 				| string		| 	❌	| String used to separate parsed tags from API version tag is versioning == true. |
-| **deprecationPathPattern**				| string		| 	❌	| If provided, all versions of endpoints except latest will be marked as deprecated. <br> Pattern needs to specify api route from start segment to version segment, which have to be specified as **"v\***". <br> For example if we have **api/v1/users** and **api/v2/users** endpoints and we set **deprecationPathPattern='/api/v\*/'**, **api/v1/users** endpoint will be automatically marked as deprecated. |
+| **deprecationPathPattern**				| string		| 	❌	| If provided, all versions of endpoints except latest will be marked as deprecated. <br> Pattern needs to specify api route from start segment to version segment, which have to be specified as **"v\***". <br> For example if we have **api/v1/users** and **api/v2/users** endpoints and we set **deprecationPathPattern='/api/v\*/'**, **api/v1/users** endpoint will be automatically marked as deprecated. For complex route schemas use pattern like **deprecationPathPattern='/api/.+/v\*/'**, **api/b2b/v1/users** |
 
 
 ## Usage example

@@ -51,13 +51,13 @@ interface IErrorRequest {
 
 interface IPaths {
 	[key: string]: {
-		[method in HttpMethod]?: IRequest
+		[method in HttpMethod]?: IRequest | IErrorRequest
 	}
 }
 
 interface IErrorPaths {
 	[key: string]: {
-		[method in HttpMethod]?: IErrorRequest
+		[method in HttpMethod]?: IErrorRequest['error']
 	}
 }
 
