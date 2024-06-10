@@ -7,6 +7,10 @@ import { IGenerateSwaggerConfig } from '../types/interfaces'
 
 export default (outputPath: string, config: IGenerateSwaggerConfig) =>
 	new Promise((resolve, reject) => {
+		const start = new Date().valueOf()
+		// eslint-disable-next-line no-console
+		console.log('UI generator started')
+
 		const archiveJson = [{ name: config.swaggerInitInfo?.info?.version || 'apidoc', url: 'data.json' }]
 		webpack(
 			{
@@ -58,6 +62,10 @@ export default (outputPath: string, config: IGenerateSwaggerConfig) =>
 				if (err) {
 					return reject(err)
 				}
+
+				// eslint-disable-next-line no-console
+				console.log(`\tUI generator finished (duration = ${new Date().valueOf() - start}ms)`)
+
 				return resolve(info)
 			}
 		)

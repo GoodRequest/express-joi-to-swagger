@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import Joi from 'joi'
-import { TranslateFunc } from '../../middlewares/validationMiddleware'
+import { TranslateFunc } from '../../../middlewares/validationMiddleware'
 
 const userEndpointDesc = 'This is how to add swagger description for this endpoint'
 

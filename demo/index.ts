@@ -42,7 +42,8 @@ const config: IGenerateSwaggerConfig = {
 		}
 	},
 	tags: {},
-	filter: '.*users.*'
+	filter: '.*users.*',
+	deprecationPathPattern: '/api/v*/'
 }
 
 // Use case example
@@ -50,11 +51,11 @@ function workflow() {
 	generateSwagger(app, config)
 		.then(() => {
 			// eslint-disable-next-line no-console
-			console.log('DONE')
+			console.log('Apidoc was successfully generated')
 		})
-		.catch((e) => {
+		.catch((err) => {
 			// eslint-disable-next-line no-console
-			console.log('ERROR', e)
+			console.log(`Unable to generate apidoc: ${err}`)
 		})
 }
 

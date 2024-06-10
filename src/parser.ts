@@ -398,4 +398,24 @@ const parseEndpoints = async (app: Express, config: IGenerateSwaggerConfig, base
 	return endpoints
 }
 
-export default parseEndpoints
+/**
+ * Traverses all the routes defined in the provided express app and parses endpoints from them
+ *
+ * @param {Express} app
+ * @param {IGenerateSwaggerConfig} config
+ * @returns {Promise<IEndpoint[]>}
+ */
+const parseExpressApp = async (app: Express, config: IGenerateSwaggerConfig) => {
+	const start = new Date().valueOf()
+	// eslint-disable-next-line no-console
+	console.log('Parser started')
+
+	const endpoints = await parseEndpoints(app, config)
+
+	// eslint-disable-next-line no-console
+	console.log(`\tParser finished (duration = ${new Date().valueOf() - start}ms)`)
+
+	return endpoints
+}
+
+export default parseExpressApp

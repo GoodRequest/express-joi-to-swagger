@@ -132,6 +132,7 @@ export interface IGenerateSwaggerConfig {
 		versionLength?: number
 	}
 	filter?: string
+	deprecationPathPattern?: `/${string}/v*/`
 }
 
 export type HttpMethod = 'get' | 'post' | 'patch' | 'put' | 'delete'
