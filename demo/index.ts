@@ -7,11 +7,16 @@ import { AUTH_METHOD, AUTH_SCOPE } from '../src/utils/enums'
 const config: IGenerateSwaggerConfig = {
 	outputPath: path.join(__dirname, 'dist'),
 	generateUI: true,
-	permissions: [
+	middlewares: [
 		{
 			middlewareName: 'permission',
 			closure: 'permissionMiddleware',
-			paramName: 'allowPermissions'
+			middlewareArguments: ['options']
+		},
+		{
+			middlewareName: 'validate',
+			closure: 'validationMiddleware',
+			middlewareArguments: ['test']
 		}
 	],
 	requestSchemaName: 'requestSchema',

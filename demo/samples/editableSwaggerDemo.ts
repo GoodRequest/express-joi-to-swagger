@@ -5,11 +5,16 @@ import { IGenerateSwaggerConfig } from '../../src/types/interfaces'
 const config: IGenerateSwaggerConfig = {
 	outputPath: path.join(__dirname, '../outputSwagger.json'),
 	generateUI: false,
-	permissions: [
+	middlewares: [
 		{
 			middlewareName: 'permission',
 			closure: 'permissionMiddleware',
-			paramName: 'allowPermissions'
+			middlewareArguments: ['allowPermissions']
+		},
+		{
+			middlewareName: 'validate',
+			closure: 'validationMiddleware',
+			middlewareArguments: ['schema']
 		}
 	],
 	requestSchemaName: 'requestSchema',

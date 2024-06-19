@@ -8,8 +8,9 @@ const options = {
 const translateFunc = (v: string) => v
 export type TranslateFunc = typeof translateFunc
 
-export default (schema: Schema | ((translateFn: TranslateFunc) => Schema)) =>
+export const validationMiddleware = (schema: Schema | ((translateFn: TranslateFunc) => Schema)) =>
 	function validate(req: Request, _res: Response, next: NextFunction) {
+		// eslint-disable-next-line no-console
 		if (!schema) {
 			throw new Error('Validation schema is not provided')
 		}
