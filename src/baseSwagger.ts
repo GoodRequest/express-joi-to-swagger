@@ -4,7 +4,19 @@ import { includes, map, camelCase, merge, forEach, isEqual } from 'lodash'
 
 import getSecuritySchemes, { ISecuritySchemes } from './utils/authSchemes'
 import { AUTH_SCOPE } from './utils/enums'
-import { HttpCode, HttpMethod, IEndpoint, IExternalDocs, IGenerateSwaggerConfig, IInfo, ISecurity, IServer, ITag } from './types/interfaces'
+import {
+	HttpCode,
+	HttpMethod,
+	IEndpoint,
+	IEndpointMiddleware,
+	IExternalDocs,
+	IGenerateSwaggerConfig,
+	ISwaggerMiddlewareConfig,
+	IInfo,
+	ISecurity,
+	IServer,
+	ITag
+} from './types/interfaces'
 
 interface IRequestParameter {
 	name: string
@@ -107,24 +119,20 @@ const createRequestBodySwaggerSchema = (requestBodyDataSchema: SwaggerSchema) =>
 	}
 })
 
-const getPermissionDescription = (permissions: { [groupName: string]: string[] }) => {
-	const permissionsResult = 'Permissions:'
+const getMiddlewareDescription = (endpointMiddleware: IEndpointMiddleware | undefined, configMiddleware: ISwaggerMiddlewareConfig) => {
+	let value = 'false'
 
-	const permissionGroupNames = Object.keys(permissions)
-	const hasDefaultGroup = includes(permissionGroupNames, 'default')
-
-	if (permissionGroupNames.length === 0) {
-		return `${permissionsResult} NO`
+	if (endpointMiddleware && endpointMiddleware.middlewareArguments && endpointMiddleware.middlewareArguments.length > 0) {
+		value = ''
+		endpointMiddleware.middlewareArguments.forEach((middlewareArgument, index) => {
+			value += `${middlewareArgument.name} - ${JSON.stringify(middlewareArgument.value)}${index === 0 ? '' : ', '}`
+		})
+	} else if (endpointMiddleware) {
+		value = 'true'
 	}
 
-	if (hasDefaultGroup && Object.keys(permissions).length === 1) {
-		return `${permissionsResult} [${permissions.default.join(', ')}]`
-	}
-
-	return `${permissionsResult}<ul>${map(
-		permissions,
-		(permissionGroup, permissionGroupName) => `<li>${permissionGroupName}${permissionGroup.length > 0 ? `: [${permissionGroup.join(', ')}]` : ''}</li>`
-	).join('')}</ul>`
+	const permissionsResult = `${configMiddleware.middlewareName}: ${value}<br>`
+	return permissionsResult
 }
 
 const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newComponents: ComponentsSchema) => {
@@ -147,8 +155,7 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 	const endpointSwaggerSchema = methods
 		.map((methodData) => {
 			try {
-				const { method, responses, permissions, security } = methodData
-
+				const { method, responses, security, middlewares } = methodData
 				// handle responses
 				const responsesSwaggerSchema = responses
 					.map((response) => {
@@ -221,16 +228,17 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 					description = description.replace('@deprecated', '').trim()
 				}
 
-				let permissionDescription = ''
-				if (config.permissions) {
-					if (config.permissionsDescriptionFormatter && typeof config.permissionsDescriptionFormatter === 'function') {
-						permissionDescription = config.permissionsDescriptionFormatter(permissions)
+				let middlewaresDescription = ''
+				config.middlewares?.forEach((configMiddleware) => {
+					const endpointMiddleware = middlewares.find((middleware) => middleware.name === configMiddleware.middlewareName)
+					if (endpointMiddleware && configMiddleware.extractor && typeof configMiddleware.extractor === 'function') {
+						middlewaresDescription += configMiddleware.extractor(endpointMiddleware, configMiddleware)
 					} else {
-						permissionDescription = getPermissionDescription(permissions)
+						middlewaresDescription += getMiddlewareDescription(endpointMiddleware, configMiddleware)
 					}
-				}
+				})
 
-				const resultDescription = [description, permissionDescription].filter((v) => !!v).join('<br>')
+				const resultDescription = [description, middlewaresDescription].filter((v) => !!v).join('<br>')
 
 				const operationId = camelCase(`${method}${path}`)
 
