@@ -42,9 +42,10 @@ export class SessionManager {
 	}
 
 	/**
-	 * Returns all own properties of given debug object
+	 * @description Returns all own properties of given debug object
+	 * @note stackSize should always be 0 to forbid stack overflow errors
 	 * @property debug object
-	 * @property stackSize should always be 0, and is necessary to forbid stack overflow errors
+	 * @property stackSize should always be 0 to forbid stack overflow errors
 	 * */
 	private async getParameterValue(property: any, stackSize: number): Promise<any> {
 		if (stackSize > 255 || stackSize < 0) {
@@ -97,11 +98,11 @@ export class SessionManager {
 
 		const deferred = new Deferred<ILocation>()
 
-		// Push a deffered location into the cache
+		// Push a deferred location into the cache
 		this.cache.add({ ref: fn, location: deferred })
 
-		// Create a function location object to put referencies into it
-		// So that we can easilly access to them
+		// Create a function location object to put references into it
+		// So that we can easily access to them
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		if (typeof global[PREFIX] === 'undefined') {
@@ -181,7 +182,7 @@ export class SessionManager {
 
 		const resultProperties = await Promise.all(
 			propertyValues.map(async (property) => ({
-				name: property.name,
+				argumentName: property.name,
 				value: await property.value
 			}))
 		)

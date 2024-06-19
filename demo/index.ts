@@ -3,6 +3,7 @@ import app from './app'
 import generateSwagger from '../src'
 import { IGenerateSwaggerConfig } from '../src/types/interfaces'
 import { AUTH_METHOD, AUTH_SCOPE } from '../src/utils/enums'
+import { firstVersionExtractor } from '../src/utils/extractors'
 
 const config: IGenerateSwaggerConfig = {
 	outputPath: path.join(__dirname, 'dist'),
@@ -11,12 +12,12 @@ const config: IGenerateSwaggerConfig = {
 		{
 			middlewareName: 'permission',
 			closure: 'permissionMiddleware',
-			middlewareArguments: ['options']
+			middlewareArguments: ['options'],
+			extractor: firstVersionExtractor
 		},
 		{
 			middlewareName: 'validate',
-			closure: 'validationMiddleware',
-			middlewareArguments: ['test']
+			closure: 'validationMiddleware'
 		}
 	],
 	requestSchemaName: 'requestSchema',

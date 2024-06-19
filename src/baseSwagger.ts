@@ -121,18 +121,21 @@ const createRequestBodySwaggerSchema = (requestBodyDataSchema: SwaggerSchema) =>
 
 const getMiddlewareDescription = (endpointMiddleware: IEndpointMiddleware | undefined, configMiddleware: ISwaggerMiddlewareConfig) => {
 	let value = 'false'
+	const middlewareName = configMiddleware.middlewareName.charAt(0).toUpperCase() + configMiddleware.middlewareName.slice(1).toLowerCase()
+	if (!endpointMiddleware) {
+		return `${middlewareName}: ${value}`
+	}
 
-	if (endpointMiddleware && endpointMiddleware.middlewareArguments && endpointMiddleware.middlewareArguments.length > 0) {
+	if (endpointMiddleware.middlewareArguments.length > 0) {
 		value = ''
-		endpointMiddleware.middlewareArguments.forEach((middlewareArgument, index) => {
-			value += `${middlewareArgument.name} - ${JSON.stringify(middlewareArgument.value)}${index === 0 ? '' : ', '}`
+		endpointMiddleware.middlewareArguments.forEach((middlewareArgument) => {
+			value += `<li>${middlewareArgument.argumentName}: ${JSON.stringify(middlewareArgument.value, null, 2)}</li>`
 		})
-	} else if (endpointMiddleware) {
+	} else {
 		value = 'true'
 	}
 
-	const permissionsResult = `${configMiddleware.middlewareName}: ${value}<br>`
-	return permissionsResult
+	return `${middlewareName}: ${value === 'true' ? value : `<ul>${value}</ul>`}`
 }
 
 const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newComponents: ComponentsSchema) => {
@@ -232,9 +235,9 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 				config.middlewares?.forEach((configMiddleware) => {
 					const endpointMiddleware = middlewares.find((middleware) => middleware.name === configMiddleware.middlewareName)
 					if (endpointMiddleware && configMiddleware.extractor && typeof configMiddleware.extractor === 'function') {
-						middlewaresDescription += configMiddleware.extractor(endpointMiddleware, configMiddleware)
+						middlewaresDescription += `<p>${configMiddleware.extractor(endpointMiddleware, configMiddleware)}</p>`
 					} else {
-						middlewaresDescription += getMiddlewareDescription(endpointMiddleware, configMiddleware)
+						middlewaresDescription += `<p>${getMiddlewareDescription(endpointMiddleware, configMiddleware)}</p>`
 					}
 				})
 
