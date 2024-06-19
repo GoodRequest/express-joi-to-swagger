@@ -116,7 +116,7 @@ export const createResponseSwaggerSchema = (responseSchema: SwaggerSchema, code:
 						'application/json': {
 							schema: responseSchema
 						}
-					}
+				  }
 				: undefined
 	}
 })
