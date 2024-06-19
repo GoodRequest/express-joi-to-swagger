@@ -1,10 +1,10 @@
 import { Express, IRoute, IRouter } from 'express'
-import { compact, forEach, isNaN, map, slice, startsWith, trimStart, uniq } from 'lodash'
+import { compact, forEach, map, slice, startsWith, trimStart, uniq } from 'lodash'
 import { Schema } from 'joi'
 
 import { locate } from './func-loc'
 import { ILocation } from './func-loc/cache-amanger.class'
-import { HttpCode, HttpMethod, IEndpoint, IGenerateSwaggerConfig, ISecurity } from './types/interfaces'
+import { HttpCode, HttpMethod, IEndpoint, IEndpointMiddleware, IGenerateSwaggerConfig, ISecurity } from './types/interfaces'
 import { AUTH_SCOPE, httpCodes } from './utils/enums'
 
 const regexpExpressRegexp = /^\/\^\\\/(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\(\[\^\\\/]\+\?\)\)))\\\/.*/
@@ -75,6 +75,7 @@ const addEndpoints = (currentEndpoints: IEndpoint[], newEndpoint: IEndpoint) => 
  * @param {IRoute} route Express route object from which to extract the middlewares
  * @returns {string[]} Array of middleware names
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getRouteMiddlewares = (route: IRoute) => map(route.stack, (item) => (item.handle.name as string) || 'anonymous')
 
 /**
@@ -175,7 +176,7 @@ const parseTags = (basePath: string[], path: string[], tagsConfig: IGenerateSwag
 
 /**
  * Parses all endpoints from provided express route.
- * It will extract request/response schemas, permissions, security, middlewares and other information from the route.
+ * It will extract request/response schemas, security, middlewares with its parameter values and other information from the route.
  *
  * @param {IRoute} route
  * @param {string} basePath
@@ -188,25 +189,24 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 
 	const methods = await Promise.all(
 		map(routeMethods, async (method) => {
-			// get permission middlewares and workflow of endpoint
-			const permissionHandlerPromises: Promise<{ groupName?: string } & ILocation>[] = []
+			// get middlewares and workflow of endpoint
+			const middlewaresHandlerPromises: Promise<{ groupName?: string; middlewareName: string } & ILocation>[] = []
 			let workflowHandlerPromise: Promise<ILocation> | null = null
 			let security: ISecurity[] = []
 
 			forEach(route.stack, (handler) => {
-				forEach(config.permissions, (permission) => {
-					if (handler.name === permission.middlewareName) {
-						permissionHandlerPromises.push(
+				forEach(config.middlewares, (middleware) => {
+					if (handler.name === middleware.middlewareName) {
+						middlewaresHandlerPromises.push(
 							// eslint-disable-next-line no-async-promise-executor
 							new Promise(async (resolve) => {
 								const location = await locate(handler.handle, {
-									closure: permission.closure === 'default' ? 'exports.default' : permission.closure,
-									paramName: permission.paramName,
-									parser: permission.parser
+									closure: middleware.closure === 'default' ? 'exports.default' : middleware.closure,
+									middlewareArguments: middleware.middlewareArguments
 								})
 
 								resolve({
-									groupName: permission.groupName ?? undefined,
+									middlewareName: handler.name,
 									...location
 								})
 							})
@@ -222,30 +222,14 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 				}
 			})
 
-			const [workflowHandler, ...permissionHandlers] = await Promise.all([workflowHandlerPromise as Promise<ILocation> | null, ...permissionHandlerPromises])
+			const [workflowHandler, ...permissionHandlers] = await Promise.all([workflowHandlerPromise as Promise<ILocation> | null, ...middlewaresHandlerPromises])
 
-			// handle permissions
-			const permissions: { [groupName: string]: string[] } = {}
-
+			// handle middleware attributeValues
+			const middlewares: IEndpointMiddleware[] = []
 			forEach(permissionHandlers, (permissionHandler) => {
-				if (permissionHandler.groupName) {
-					if (!permissions[permissionHandler.groupName]) {
-						permissions[permissionHandler.groupName] = []
-					}
-				} else if (!permissions.default) {
-					permissions.default = []
-				}
-
-				forEach(permissionHandler.resultProperties.result, (value) => {
-					if (!isNaN(parseInt(value.name, 10))) {
-						const permission = value.value.value
-
-						if (permissionHandler.groupName) {
-							permissions[permissionHandler.groupName].push(permission)
-						} else {
-							permissions.default.push(permission)
-						}
-					}
+				middlewares.push({
+					name: permissionHandler.middlewareName,
+					middlewareArguments: permissionHandler.resultProperties
 				})
 			})
 
@@ -302,11 +286,10 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 
 			return {
 				method,
-				permissions,
 				security,
 				requestJoiSchema,
 				responses,
-				middlewares: getRouteMiddlewares(route)
+				middlewares
 			}
 		})
 	)

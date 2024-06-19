@@ -5,13 +5,13 @@ import { randomUUID as v4 } from 'node:crypto'
 
 import { CacheManager, ILocation } from './cache-amanger.class'
 import { Deferred } from './deffered.class'
+import { ISwaggerMiddlewareConfig } from '../types/interfaces'
 
 const PREFIX = '__functionLocation__'
 
 export interface ILocateOptions {
 	closure: string
-	paramName?: string
-	parser?: (param: any, scopes: any) => Promise<any>
+	middlewareArguments: ISwaggerMiddlewareConfig['middlewareArguments']
 }
 
 export class SessionManager {
@@ -39,6 +39,48 @@ export class SessionManager {
 		this.cache.clear()
 
 		return true
+	}
+
+	/**
+	 * Returns all own properties of given debug object
+	 * @property debug object
+	 * @property stackSize should always be 0, and is necessary to forbid stack overflow errors
+	 * */
+	private async getParameterValue(property: any, stackSize: number): Promise<any> {
+		if (stackSize > 255 || stackSize < 0) {
+			throw new Error('Stack is too deep or has a negative value in getParameterValue func.')
+		}
+
+		if (property.value.subtype === 'array') {
+			const properties = await this.post$('Runtime.getProperties', {
+				objectId: property.value.objectId,
+				ownProperties: true
+			})
+			const filteredProperties = properties.result.filter((propertyItem: any) => propertyItem.name !== 'length')
+			const result = await Promise.all(filteredProperties.map((propertyItem: any) => this.getParameterValue(propertyItem, stackSize + 1)))
+			return result
+		}
+
+		if (property?.value?.objectId) {
+			const result: any = {}
+			const properties = await this.post$('Runtime.getProperties', {
+				objectId: property.value.objectId,
+				ownProperties: true
+			})
+
+			// eslint-disable-next-line no-restricted-syntax
+			for await (const propertyItem of properties.result) {
+				if (propertyItem.isOwn) {
+					result[propertyItem.name] = await this.getParameterValue(propertyItem, stackSize + 1)
+				}
+			}
+			return result
+		}
+		if (property.value.value) {
+			return property.value.value
+		}
+
+		return null
 	}
 
 	public async locate(fn: (...args: any) => any, opts?: ILocateOptions): Promise<ILocation> {
@@ -106,39 +148,44 @@ export class SessionManager {
 			importPath = path.join(root, importPath)
 		}
 
-		let resultProperties = { result: [] as any }
+		// Get middleware attribute values
+		const propertyValues: {
+			name: string
+			value: Promise<any>
+		}[] = []
 		if (opts?.closure) {
-			if (opts?.parser && typeof opts.parser === 'function') {
-				resultProperties = await opts.parser(this, scopes)
-			} else {
-				const properties2 = await this.post$('Runtime.getProperties', {
-					objectId: scopes.value.objectId
-				})
+			const properties2 = await this.post$('Runtime.getProperties', {
+				objectId: scopes.value.objectId
+			})
 
-				const closure = `Closure (${opts.closure})`
-				const properties2Object = properties2.result.find((el: any) => el.value.description === closure)
+			const closure = `Closure (${opts.closure})`
+			const properties2Object = properties2.result.find((el: any) => el.value.description === closure)
 
-				if (!properties2Object) {
-					throw Error(`Middleware not found for closure: ${closure}`)
-				}
-
-				const properties3 = await this.post$('Runtime.getProperties', {
-					objectId: properties2Object.value.objectId
-				})
-
-				const properties3Object = properties3.result.find((el: any) => el.name === opts.paramName)
-
-				if (!properties3Object) {
-					throw Error(`Middleware params ${opts.paramName} not found`)
-				}
-				if (properties3Object.value.objectId) {
-					resultProperties = await this.post$('Runtime.getProperties', {
-						objectId: properties3Object.value.objectId,
-						ownProperties: true
-					})
-				}
+			if (!properties2Object) {
+				throw Error(`Middleware not found for closure: ${closure}`)
 			}
+
+			const properties3 = await this.post$('Runtime.getProperties', {
+				objectId: properties2Object.value.objectId,
+				ownProperties: true
+			})
+
+			opts.middlewareArguments?.forEach((middlewareArgument) => {
+				const properties3Object = properties3.result.find((el: any) => el.name === middlewareArgument)
+				if (properties3Object) {
+					const value = this.getParameterValue(properties3Object, 0)
+					propertyValues.push({ name: middlewareArgument, value })
+				}
+			})
 		}
+
+		const resultProperties = await Promise.all(
+			propertyValues.map(async (property) => ({
+				name: property.name,
+				value: await property.value
+			}))
+		)
+
 		return {
 			resultProperties,
 			post: this.post$,
