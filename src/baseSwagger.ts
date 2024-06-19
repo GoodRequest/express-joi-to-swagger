@@ -56,10 +56,20 @@ interface IRequest {
 		[code in HttpCode]?: IResponse
 	}
 }
+interface IErrorRequest {
+	description: string
+	error: Error
+}
 
-interface IPath {
+interface IPaths {
 	[key: string]: {
-		[method in HttpMethod]?: IRequest
+		[method in HttpMethod]?: IRequest | IErrorRequest
+	}
+}
+
+export interface IErrorPaths {
+	[key: string]: {
+		[method in HttpMethod]?: IErrorRequest['error']
 	}
 }
 
@@ -74,7 +84,7 @@ export interface ISwaggerSchema {
 	servers: IServer[]
 	info: Required<IInfo>
 	tags?: ITag[]
-	paths: IPath
+	paths: IPaths
 	externalDocs: IExternalDocs
 	components: IComponents
 	security: ISecurity[]
@@ -106,7 +116,7 @@ export const createResponseSwaggerSchema = (responseSchema: SwaggerSchema, code:
 						'application/json': {
 							schema: responseSchema
 						}
-				  }
+					}
 				: undefined
 	}
 })
@@ -154,7 +164,6 @@ const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newCompon
 
 function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: ComponentsSchema, config: IGenerateSwaggerConfig) {
 	const { path, tags, methods } = endpoint
-
 	const endpointSwaggerSchema = methods
 		.map((methodData) => {
 			try {
@@ -270,9 +279,12 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 					[method]: endpointMethodSwaggerSchema
 				}
 			} catch (err) {
-				// eslint-disable-next-line no-console
-				console.log(`ERROR with method:${methodData.method} ${path}`, err)
-				return {}
+				return {
+					[methodData.method]: {
+						error: err,
+						description: `***\n${err.message}\n***`
+					}
+				}
 			}
 		})
 		.reduce(
@@ -283,20 +295,50 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 			{}
 		)
 
-	return endpointSwaggerSchema
+	return endpointSwaggerSchema as { [key in HttpMethod]: IRequest | IErrorRequest }
 }
 
-export const generateSwaggerSchema = (endpoints: IEndpoint[], config: IGenerateSwaggerConfig): ISwaggerSchema => {
+/**
+ * Generates swagger schema for API documentation
+ * @param {IEndpoint[]} endpoints is an array of endpoints used in a project
+ * @param {IGenerateSwaggerConfig} config swagger configuration
+ * @return {{ swaggerSchema: ISwaggerSchema; swaggerSchemaErrors: IErrorPaths }}
+ * 	- swaggerSchema - contains all generated swagger schemas
+ * 	- swaggerSchemaErrors - contains all errors occurred during API schemas generation (same structure as swaggerSchema)
+ * */
+export const generateSwaggerSchema = (endpoints: IEndpoint[], config: IGenerateSwaggerConfig) => {
+	const start = new Date().valueOf()
+	// eslint-disable-next-line no-console
+	console.log('Swagger builder started')
+
 	const swaggerInitInfoConfig = config.swaggerInitInfo || {}
 
-	const endpointsSwaggerSchema: IPath = {}
+	const endpointsSwaggerSchema: IPaths = {}
 	const sharedComponents: ComponentsSchema = {}
+	let swaggerSchemaErrors: IErrorPaths | undefined
 
 	forEach(endpoints, (endpoint) => {
-		endpointsSwaggerSchema[endpoint.path] = generateEndpointSwaggerSchema(endpoint, sharedComponents, config)
+		const endpointSwaggerSchema = generateEndpointSwaggerSchema(endpoint, sharedComponents, config)
+
+		forEach(endpointSwaggerSchema, (endpointSwaggerSchemaItem, method: HttpMethod) => {
+			if ('error' in endpointSwaggerSchemaItem) {
+				swaggerSchemaErrors = {
+					...(swaggerSchemaErrors || {}),
+					[endpoint.path]: {
+						...(swaggerSchemaErrors?.[endpoint.path] || {}),
+						[method]: endpointSwaggerSchemaItem
+					}
+				}
+			} else {
+				endpointsSwaggerSchema[endpoint.path] = {
+					...(endpointsSwaggerSchema[endpoint.path] || {}),
+					[method]: endpointSwaggerSchemaItem
+				}
+			}
+		})
 	})
 
-	return {
+	const swaggerSchema: ISwaggerSchema = {
 		openapi: '3.1.0',
 		servers: swaggerInitInfoConfig.servers || [
 			{
@@ -327,5 +369,13 @@ export const generateSwaggerSchema = (endpoints: IEndpoint[], config: IGenerateS
 			securitySchemes: getSecuritySchemes(swaggerInitInfoConfig.security?.methods || [])
 		},
 		security: swaggerInitInfoConfig.security?.scope === AUTH_SCOPE.GLOBAL ? map(swaggerInitInfoConfig.security?.methods, (method) => ({ [method.name]: [] })) : []
+	}
+
+	// eslint-disable-next-line no-console
+	console.log(`\tSwagger builder finished (duration = ${new Date().valueOf() - start}ms)`)
+
+	return {
+		swaggerSchema,
+		swaggerSchemaErrors
 	}
 }

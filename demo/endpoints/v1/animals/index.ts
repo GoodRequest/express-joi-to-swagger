@@ -1,5 +1,5 @@
 import express from 'express'
-import { validationMiddleware } from '../../middlewares/validationMiddleware'
+import validationMiddleware from '../../../middlewares/validationMiddleware'
 import * as getAnimals from './get.animals'
 import * as postAnimal from './post.animal'
 import * as postAnimalByFamily from './post.animalByFamily'

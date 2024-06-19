@@ -1,14 +1,16 @@
 import webpack from 'webpack'
 import path from 'path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import CreateFileWebpack from 'create-file-webpack'
 
 import { IGenerateSwaggerConfig } from '../types/interfaces'
 
 export default (outputPath: string, config: IGenerateSwaggerConfig) =>
 	new Promise((resolve, reject) => {
+		const start = new Date().valueOf()
+		// eslint-disable-next-line no-console
+		console.log('UI generator started')
+
 		const archiveJson = [{ name: config.swaggerInitInfo?.info?.version || 'apidoc', url: 'data.json' }]
 		webpack(
 			{
@@ -60,6 +62,10 @@ export default (outputPath: string, config: IGenerateSwaggerConfig) =>
 				if (err) {
 					return reject(err)
 				}
+
+				// eslint-disable-next-line no-console
+				console.log(`\tUI generator finished (duration = ${new Date().valueOf() - start}ms)`)
+
 				return resolve(info)
 			}
 		)

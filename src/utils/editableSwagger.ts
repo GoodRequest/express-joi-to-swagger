@@ -22,6 +22,7 @@ export class PathEditable {
 	addResponse(response: IResponse) {
 		const newResponse = createResponseSwaggerSchema(response.joiSchema, response.code, response.description)
 		if (!this.pathToSwaggerMethod) {
+			// eslint-disable-next-line no-console
 			console.error(`PathEditable init error for path: ${this.errorPath}`)
 			return
 		}
@@ -52,10 +53,12 @@ export class SwaggerEditable {
 			return new PathEditable(null, pathDescription)
 		}
 		if (!this.instance?.paths[endpointPath]) {
+			// eslint-disable-next-line no-console
 			console.error(`Path not registered: ${endpointPath} `)
 			return new PathEditable(null, pathDescription)
 		}
 		if (!this.instance?.paths[endpointPath]?.[method]) {
+			// eslint-disable-next-line no-console
 			console.error(`Method ${method} at path ${endpointPath} not registered`)
 			return new PathEditable(null, pathDescription)
 		}

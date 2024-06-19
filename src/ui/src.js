@@ -1,7 +1,7 @@
 import { trim, every } from 'lodash'
-
 import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist'
 import 'swagger-ui-dist/swagger-ui.css'
+import { compareVersions, validate } from 'compare-versions'
 
 const AdvancedFilterPlugin = () => ({
 	fn: {
@@ -14,7 +14,7 @@ const AdvancedFilterPlugin = () => ({
 
 			const filteredData = taggedOps
 				.map((entities) => {
-					const newentities = entities.map((entity, key) => {
+					const newEntities = entities.map((entity, key) => {
 						if (key === 'operations') {
 							const operations = entity.filter((operation) => {
 								const hasEvery = every(normPhrases, (normPhrase) => {
@@ -38,7 +38,7 @@ const AdvancedFilterPlugin = () => ({
 						}
 						return entity
 					})
-					return newentities
+					return newEntities
 				})
 				.filter((entities) => !(entities.get('operations').size <= 0))
 
@@ -50,7 +50,18 @@ const AdvancedFilterPlugin = () => ({
 // eslint-disable-next-line no-undef, no-void
 void fetch(`archive.json?v=${APP_VERSION}`)
 	.then((response) => response.json())
-	.then((data) => {
+	.then((versionsData) => {
+		const sortedVersionsData = versionsData.sort((a, b) => {
+			const aIsSemver = validate(a.name)
+			const bIsSemver = validate(b.name)
+
+			if (aIsSemver && bIsSemver) {
+				return compareVersions(b.name, a.name)
+			}
+
+			return a.name.localeCompare(b.name)
+		})
+
 		SwaggerUIBundle({
 			dom_id: '#swagger',
 			filter: true,
@@ -65,9 +76,9 @@ void fetch(`archive.json?v=${APP_VERSION}`)
 			plugins: [AdvancedFilterPlugin, SwaggerUIBundle.plugins.DownloadUrl],
 			presets: [
 				SwaggerUIBundle.presets.apis,
-				SwaggerUIStandalonePreset // // NOTE: turn on for topbar
+				SwaggerUIStandalonePreset // NOTE: turn on for topbar
 			],
-			urls: data,
-			'urls.primaryName': data?.[0]?.name // default spec
+			urls: sortedVersionsData,
+			'urls.primaryName': sortedVersionsData?.[0]?.name // default spec
 		})
 	})
