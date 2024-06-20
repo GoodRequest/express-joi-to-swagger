@@ -1,4 +1,4 @@
-import { trim, every } from 'lodash'
+import { trim, every, find } from 'lodash'
 import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist'
 import 'swagger-ui-dist/swagger-ui.css'
 import { compareVersions, validate } from 'compare-versions'
@@ -62,6 +62,9 @@ void fetch(`archive.json?v=${APP_VERSION}`)
 			return a.name.localeCompare(b.name)
 		})
 
+		// eslint-disable-next-line no-undef, no-void
+		const currVersion = find(versionsData, { name: `v${APP_VERSION}` })
+
 		SwaggerUIBundle({
 			dom_id: '#swagger',
 			filter: true,
@@ -79,6 +82,6 @@ void fetch(`archive.json?v=${APP_VERSION}`)
 				SwaggerUIStandalonePreset // NOTE: turn on for topbar
 			],
 			urls: sortedVersionsData,
-			'urls.primaryName': sortedVersionsData?.[0]?.name // default spec
+			'urls.primaryName': currVersion?.name ?? sortedVersionsData?.[0]?.name // default spec
 		})
 	})
