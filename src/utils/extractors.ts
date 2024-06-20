@@ -9,6 +9,10 @@ function extractMiddlewareName(configMiddleware: ISwaggerMiddlewareConfig): stri
 
 /**
  * Works only with first middleware argument and prints his value if it consists of a primitive value array or an object containing such arrays
+ * @param endpointMiddleware object containing all necessary information about actual middleware
+ * or undefined in case the middleware is not used in a given endpoint.
+ * @param configMiddleware config information of a middleware wich should be processed
+ * @return { string } middleware's description
  * */
 export const firstVersionExtractor = (endpointMiddleware: IEndpointMiddleware | undefined, configMiddleware: ISwaggerMiddlewareConfig): string => {
 	if (!endpointMiddleware || endpointMiddleware.middlewareArguments.length === 0) {
@@ -38,6 +42,13 @@ export const firstVersionExtractor = (endpointMiddleware: IEndpointMiddleware | 
 		.join('')}</ul>`
 }
 
+/**
+ * Default extractor
+ * @param endpointMiddleware object containing all necessary information about actual middleware
+ * or undefined in case the middleware is not used in a given endpoint.
+ * @param configMiddleware config information of a middleware wich should be processed
+ * @return { string } middleware's description
+ * */
 export const defaultExtractor = (endpointMiddleware: IEndpointMiddleware | undefined, configMiddleware: ISwaggerMiddlewareConfig) => {
 	let value = 'false'
 	const middlewareName = extractMiddlewareName(configMiddleware)
