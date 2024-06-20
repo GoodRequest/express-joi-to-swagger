@@ -4,19 +4,8 @@ import { includes, map, camelCase, merge, forEach, isEqual } from 'lodash'
 
 import getSecuritySchemes, { ISecuritySchemes } from './utils/authSchemes'
 import { AUTH_SCOPE } from './utils/enums'
-import {
-	HttpCode,
-	HttpMethod,
-	IEndpoint,
-	IEndpointMiddleware,
-	IExternalDocs,
-	IGenerateSwaggerConfig,
-	ISwaggerMiddlewareConfig,
-	IInfo,
-	ISecurity,
-	IServer,
-	ITag
-} from './types/interfaces'
+import { HttpCode, HttpMethod, IEndpoint, IExternalDocs, IGenerateSwaggerConfig, IInfo, ISecurity, IServer, ITag } from './types/interfaces'
+import { defaultExtractor } from './utils/extractors'
 
 interface IRequestParameter {
 	name: string
@@ -116,7 +105,7 @@ export const createResponseSwaggerSchema = (responseSchema: SwaggerSchema, code:
 						'application/json': {
 							schema: responseSchema
 						}
-				  }
+					}
 				: undefined
 	}
 })
@@ -128,25 +117,6 @@ const createRequestBodySwaggerSchema = (requestBodyDataSchema: SwaggerSchema) =>
 		}
 	}
 })
-
-const getMiddlewareDescription = (endpointMiddleware: IEndpointMiddleware | undefined, configMiddleware: ISwaggerMiddlewareConfig) => {
-	let value = 'false'
-	const middlewareName = configMiddleware.middlewareName.charAt(0).toUpperCase() + configMiddleware.middlewareName.slice(1).toLowerCase()
-	if (!endpointMiddleware) {
-		return `${middlewareName}: ${value}`
-	}
-
-	if (endpointMiddleware.middlewareArguments.length > 0) {
-		value = ''
-		endpointMiddleware.middlewareArguments.forEach((middlewareArgument) => {
-			value += `<li>${middlewareArgument.argumentName}: ${JSON.stringify(middlewareArgument.value, null, 2)}</li>`
-		})
-	} else {
-		value = 'true'
-	}
-
-	return `${middlewareName}: ${value === 'true' ? value : `<ul>${value}</ul>`}`
-}
 
 const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newComponents: ComponentsSchema) => {
 	forEach(newComponents, (schemas, schemaType) => {
@@ -246,7 +216,7 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 					if (endpointMiddleware && configMiddleware.extractor && typeof configMiddleware.extractor === 'function') {
 						middlewaresDescription += `<p>${configMiddleware.extractor(endpointMiddleware, configMiddleware)}</p>`
 					} else {
-						middlewaresDescription += `<p>${getMiddlewareDescription(endpointMiddleware, configMiddleware)}</p>`
+						middlewaresDescription += `<p>${defaultExtractor(endpointMiddleware, configMiddleware)}</p>`
 					}
 				})
 
