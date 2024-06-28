@@ -107,7 +107,6 @@ interface ISwaggerInitInfo {
 
 export type IEndpointMiddleware = {
 	name: string
-	closure: string
 	middlewareArguments: {
 		argumentName: string
 		value: any

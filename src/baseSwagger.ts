@@ -216,7 +216,7 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 					if (endpointMiddleware && configMiddleware.extractor && typeof configMiddleware.extractor === 'function') {
 						middlewaresDescription += `<p>${configMiddleware.extractor(endpointMiddleware, configMiddleware)}</p>`
 					} else {
-						middlewaresDescription += `<p>${defaultExtractor(endpointMiddleware, configMiddleware)}</p>`
+						middlewaresDescription += `<p>${defaultExtractor(configMiddleware, endpointMiddleware)}</p>`
 					}
 				})
 

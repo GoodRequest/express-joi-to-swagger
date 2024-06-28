@@ -68,16 +68,6 @@ const addEndpoints = (currentEndpoints: IEndpoint[], newEndpoint: IEndpoint) => 
 		currentEndpoints.push(newEndpoint)
 	}
 }
-
-/**
- * Returns names (or anonymous) of all the middlewares attached to the passed route
- *
- * @param {IRoute} route Express route object from which to extract the middlewares
- * @returns {string[]} Array of middleware names
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getRouteMiddlewares = (route: IRoute) => map(route.stack, (item) => (item.handle.name as string) || 'anonymous')
-
 /**
  * Checks if provided path segment contains a param regexp
  *
@@ -176,7 +166,7 @@ const parseTags = (basePath: string[], path: string[], tagsConfig: IGenerateSwag
 
 /**
  * Parses all endpoints from provided express route.
- * It will extract request/response schemas, security, middlewares with its parameter values and other information from the route.
+ * It will extract request/response schemas, security, middlewares with their parameter values and other information from the route.
  *
  * @param {IRoute} route
  * @param {string} basePath
@@ -230,7 +220,6 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 			const middlewares: IEndpointMiddleware[] = []
 			forEach(permissionHandlers, (permissionHandler) => {
 				middlewares.push({
-					closure: permissionHandler.closure,
 					name: permissionHandler.middlewareName,
 					middlewareArguments: permissionHandler.resultProperties
 				})

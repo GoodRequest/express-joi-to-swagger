@@ -255,12 +255,12 @@ Implementing custom extractor example.
 ```typescript
 /**
  * Custom extractor
+ * @param configMiddleware config information of a middleware wich should be processed
  * @param endpointMiddleware object containing all necessary information about actual middleware 
  * or undefined in case the middleware is not used in a given endpoint.
- * @param configMiddleware config information of a middleware wich should be processed
  * @return { string } middleware's description
  * */
-export const myExtractor = (endpointMiddleware: IEndpointMiddleware | undefined, configMiddleware: ISwaggerMiddlewareConfig): string => {
+export const myExtractor = (configMiddleware: ISwaggerMiddlewareConfig, endpointMiddleware: IEndpointMiddleware | undefined): string => {
 	let value = 'false'
 	const middlewareName = extractMiddlewareName(configMiddleware)
 	if (!endpointMiddleware) {
