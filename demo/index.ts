@@ -3,15 +3,21 @@ import app from './app'
 import generateSwagger from '../src'
 import { IGenerateSwaggerConfig } from '../src/types/interfaces'
 import { AUTH_METHOD, AUTH_SCOPE } from '../src/utils/enums'
+import { basicArrayFormatter } from '../src/utils/formatters'
 
 const config: IGenerateSwaggerConfig = {
 	outputPath: path.join(__dirname, 'dist'),
 	generateUI: true,
-	permissions: [
+	middlewares: [
 		{
 			middlewareName: 'permission',
 			closure: 'permissionMiddleware',
-			paramName: 'allowPermissions'
+			formatter: basicArrayFormatter,
+			maxParamDepth: 3
+		},
+		{
+			middlewareName: 'validate',
+			closure: 'validationMiddleware'
 		}
 	],
 	requestSchemaName: 'requestSchema',

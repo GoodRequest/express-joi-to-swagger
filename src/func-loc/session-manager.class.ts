@@ -10,8 +10,7 @@ const PREFIX = '__functionLocation__'
 
 export interface ILocateOptions {
 	closure: string
-	paramName?: string
-	parser?: (param: any, scopes: any) => Promise<any>
+	maxParamDepth?: number
 }
 
 export class SessionManager {
@@ -41,6 +40,54 @@ export class SessionManager {
 		return true
 	}
 
+	/**
+	 * @description Returns all own properties of given debug object
+	 * @note stackSize should always be 0 to forbid stack overflow errors
+	 * @property debug object
+	 * @property stackSize should always be 0 to forbid stack overflow errors
+	 * */
+	private async getParameterValue(property: any, stackSize: number, maxParamDepth: number): Promise<any> {
+		const maxDepth = maxParamDepth > 0 ? maxParamDepth : 5
+		if (stackSize > maxDepth || stackSize < 0) {
+			return null
+		}
+
+		if (property.value.type === 'function') {
+			return 'function'
+		}
+
+		if (property.value.subtype === 'array') {
+			const properties = await this.post$('Runtime.getProperties', {
+				objectId: property.value.objectId,
+				ownProperties: true
+			})
+			const filteredProperties = properties.result.filter((propertyItem: any) => propertyItem.name !== 'length')
+			const result = await Promise.all(filteredProperties.map((propertyItem: any) => this.getParameterValue(propertyItem, stackSize + 1, maxDepth)))
+			return result
+		}
+
+		if (property?.value?.objectId && property.value.type === 'object') {
+			const result: any = {}
+			const properties = await this.post$('Runtime.getProperties', {
+				objectId: property.value.objectId,
+				ownProperties: true
+			})
+
+			// eslint-disable-next-line no-restricted-syntax
+			for await (const propertyItem of properties.result) {
+				if (propertyItem.isOwn) {
+					result[propertyItem.name] = await this.getParameterValue(propertyItem, stackSize + 1, maxDepth)
+				}
+			}
+			return result
+		}
+		if (property.value.value) {
+			return property.value.value
+		}
+
+		return null
+	}
+
 	public async locate(fn: (...args: any) => any, opts?: ILocateOptions): Promise<ILocation> {
 		if (typeof fn !== 'function') {
 			throw new Error('You are allowed only to reference functions.')
@@ -55,11 +102,11 @@ export class SessionManager {
 
 		const deferred = new Deferred<ILocation>()
 
-		// Push a deffered location into the cache
+		// Push a deferred location into the cache
 		this.cache.add({ ref: fn, location: deferred })
 
-		// Create a function location object to put referencies into it
-		// So that we can easilly access to them
+		// Create a function location object to put references into it
+		// So that we can easily access to them
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		if (typeof global[PREFIX] === 'undefined') {
@@ -106,39 +153,40 @@ export class SessionManager {
 			importPath = path.join(root, importPath)
 		}
 
-		let resultProperties = { result: [] as any }
+		// Get middleware attribute values
+		const propertyValues: {
+			name: string
+			value: Promise<any>
+		}[] = []
 		if (opts?.closure) {
-			if (opts?.parser && typeof opts.parser === 'function') {
-				resultProperties = await opts.parser(this, scopes)
-			} else {
-				const properties2 = await this.post$('Runtime.getProperties', {
-					objectId: scopes.value.objectId
-				})
+			const properties2 = await this.post$('Runtime.getProperties', {
+				objectId: scopes.value.objectId
+			})
 
-				const closure = `Closure (${opts.closure})`
-				const properties2Object = properties2.result.find((el: any) => el.value.description === closure)
+			const closure = `Closure (${opts.closure})`
+			const properties2Object = properties2.result.find((el: any) => el.value.description === closure)
 
-				if (!properties2Object) {
-					throw Error(`Middleware not found for closure: ${closure}`)
-				}
-
-				const properties3 = await this.post$('Runtime.getProperties', {
-					objectId: properties2Object.value.objectId
-				})
-
-				const properties3Object = properties3.result.find((el: any) => el.name === opts.paramName)
-
-				if (!properties3Object) {
-					throw Error(`Middleware params ${opts.paramName} not found`)
-				}
-				if (properties3Object.value.objectId) {
-					resultProperties = await this.post$('Runtime.getProperties', {
-						objectId: properties3Object.value.objectId,
-						ownProperties: true
-					})
-				}
+			if (!properties2Object) {
+				throw Error(`Middleware not found for closure: ${closure}`)
 			}
+
+			const properties3 = await this.post$('Runtime.getProperties', {
+				objectId: properties2Object.value.objectId,
+				ownProperties: true
+			})
+			properties3.result.forEach((properties3Object: any) => {
+				const value = this.getParameterValue(properties3Object, 0, opts.maxParamDepth ?? 5)
+				propertyValues.push({ name: properties3Object.name, value })
+			})
 		}
+
+		const resultProperties = await Promise.all(
+			propertyValues.map(async (property) => ({
+				argumentName: property.name,
+				value: await property.value
+			}))
+		)
+
 		return {
 			resultProperties,
 			post: this.post$,
