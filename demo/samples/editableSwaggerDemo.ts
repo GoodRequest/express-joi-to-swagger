@@ -8,13 +8,11 @@ const config: IGenerateSwaggerConfig = {
 	middlewares: [
 		{
 			middlewareName: 'permission',
-			closure: 'permissionMiddleware',
-			middlewareArguments: ['allowPermissions']
+			closure: 'permissionMiddleware'
 		},
 		{
 			middlewareName: 'validate',
-			closure: 'validationMiddleware',
-			middlewareArguments: ['schema']
+			closure: 'validationMiddleware'
 		}
 	],
 	requestSchemaName: 'requestSchema',

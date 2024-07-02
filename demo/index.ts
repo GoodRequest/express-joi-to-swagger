@@ -3,7 +3,7 @@ import app from './app'
 import generateSwagger from '../src'
 import { IGenerateSwaggerConfig } from '../src/types/interfaces'
 import { AUTH_METHOD, AUTH_SCOPE } from '../src/utils/enums'
-import { firstVersionExtractor } from '../src/utils/extractors'
+import { basicArrayFormatter } from '../src/utils/formatters'
 
 const config: IGenerateSwaggerConfig = {
 	outputPath: path.join(__dirname, 'dist'),
@@ -12,8 +12,8 @@ const config: IGenerateSwaggerConfig = {
 		{
 			middlewareName: 'permission',
 			closure: 'permissionMiddleware',
-			middlewareArguments: ['options'],
-			extractor: firstVersionExtractor
+			formatter: basicArrayFormatter,
+			maxParamDepth: 3
 		},
 		{
 			middlewareName: 'validate',

@@ -5,13 +5,12 @@ import { randomUUID as v4 } from 'node:crypto'
 
 import { CacheManager, ILocation } from './cache-amanger.class'
 import { Deferred } from './deffered.class'
-import { ISwaggerMiddlewareConfig } from '../types/interfaces'
 
 const PREFIX = '__functionLocation__'
 
 export interface ILocateOptions {
 	closure: string
-	middlewareArguments: ISwaggerMiddlewareConfig['middlewareArguments']
+	maxParamDepth?: number
 }
 
 export class SessionManager {
@@ -47,9 +46,14 @@ export class SessionManager {
 	 * @property debug object
 	 * @property stackSize should always be 0 to forbid stack overflow errors
 	 * */
-	private async getParameterValue(property: any, stackSize: number): Promise<any> {
-		if (stackSize > 255 || stackSize < 0) {
-			throw new Error('Stack is too deep or has a negative value in getParameterValue func.')
+	private async getParameterValue(property: any, stackSize: number, maxParamDepth: number): Promise<any> {
+		const maxDepth = maxParamDepth > 0 ? maxParamDepth : 5
+		if (stackSize > maxDepth || stackSize < 0) {
+			return null
+		}
+
+		if (property.value.type === 'function') {
+			return 'function'
 		}
 
 		if (property.value.subtype === 'array') {
@@ -58,11 +62,11 @@ export class SessionManager {
 				ownProperties: true
 			})
 			const filteredProperties = properties.result.filter((propertyItem: any) => propertyItem.name !== 'length')
-			const result = await Promise.all(filteredProperties.map((propertyItem: any) => this.getParameterValue(propertyItem, stackSize + 1)))
+			const result = await Promise.all(filteredProperties.map((propertyItem: any) => this.getParameterValue(propertyItem, stackSize + 1, maxDepth)))
 			return result
 		}
 
-		if (property?.value?.objectId) {
+		if (property?.value?.objectId && property.value.type === 'object') {
 			const result: any = {}
 			const properties = await this.post$('Runtime.getProperties', {
 				objectId: property.value.objectId,
@@ -72,7 +76,7 @@ export class SessionManager {
 			// eslint-disable-next-line no-restricted-syntax
 			for await (const propertyItem of properties.result) {
 				if (propertyItem.isOwn) {
-					result[propertyItem.name] = await this.getParameterValue(propertyItem, stackSize + 1)
+					result[propertyItem.name] = await this.getParameterValue(propertyItem, stackSize + 1, maxDepth)
 				}
 			}
 			return result
@@ -170,13 +174,9 @@ export class SessionManager {
 				objectId: properties2Object.value.objectId,
 				ownProperties: true
 			})
-
-			opts.middlewareArguments?.forEach((middlewareArgument) => {
-				const properties3Object = properties3.result.find((el: any) => el.name === middlewareArgument)
-				if (properties3Object) {
-					const value = this.getParameterValue(properties3Object, 0)
-					propertyValues.push({ name: middlewareArgument, value })
-				}
+			properties3.result.forEach((properties3Object: any) => {
+				const value = this.getParameterValue(properties3Object, 0, opts.maxParamDepth ?? 5)
+				propertyValues.push({ name: properties3Object.name, value })
 			})
 		}
 

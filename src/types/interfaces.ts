@@ -112,17 +112,26 @@ export type IEndpointMiddleware = {
 		value: any
 	}[]
 }
-export interface ISwaggerMiddlewareConfig {
-	middlewareName: string
+
+export interface IMiddleware {
+	name: string
 	closure: string
-	middlewareArguments?: string[]
-	extractor?: (endpointMiddleware: IEndpointMiddleware, configMiddleware: Omit<ISwaggerMiddlewareConfig, 'extractor'>) => string
+	isUsed: boolean
+	middlewareArguments: {
+		argumentName: string
+		value: any
+	}[]
 }
 
 export interface IGenerateSwaggerConfig {
 	outputPath: string
 	generateUI: boolean
-	middlewares?: ISwaggerMiddlewareConfig[]
+	middlewares?: {
+		middlewareName: string
+		closure: string
+		formatter?: (middleware: IMiddleware) => string
+		maxParamDepth?: number
+	}[]
 	requestSchemaName?: string
 	requestSchemaParams?: any[]
 	responseSchemaName?: string

@@ -41,7 +41,7 @@ endpoint permissions in the documentation as well you need to name the function 
 array as its input parameter.
 
 You can find simple examples of all mentioned in the demo folder of this repository. Quick usage example can also be found below ⬇.
- 
+
 
 ## Config parameters
 
@@ -50,10 +50,10 @@ You can find simple examples of all mentioned in the demo folder of this reposit
 | **outputPath**							                     | string		      | 	✅	| Path to directory where output JSON file should be created.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | **generateUI**							                     | boolean		     | 	✅	| Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | **middlewares**							                    | object		      | 	❌	| Configuration parameters for parsing middlewares.                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **middlewares**.extractor					            | function		    | 	❌	| Custom formatter function for middleware. If not used, the default one will be used.                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **middlewares**.formatter					            | function		    | 	❌	| Custom formatter function for middleware. If not used, the default one will be used.                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | **middlewares**.middlewareName			         | string		      | 	✅	| Name of the middleware responsible for handling API permissions.                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | **middlewares**.closure					              | string		      | 	✅	| Name of the permission middleware closure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **middlewares**.middlewareArguments					            | string[]		    | 	❌	| Array containing attribute names wich will be parsed and passed to extractor ().                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **middlewares**.maxParamDepth					              | number		      | 	❌	| Max copying depth of middleware parameter. By default is 5.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | **requestSchemaName**						               | string		      | 	❌	| Name of the Joi schema object defining request structure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | **responseSchemaName**					               | string		      | 	❌	| Name of the Joi schema object defining response structure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | **requestSchemaParams**					              | any[]			      | 	❌	| Param for ability to pass mock params for requestSchema.                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -98,8 +98,8 @@ const config: IConfig = {
 		{
 			middlewareName: 'permission',
 			closure: 'permissionMiddleware',
-			middlewareArguments: ['options'],
-			extractor: firstVersionExtractor
+			extractor: basicArrayFormatter,
+			maxParamDepth: 3
 		},
 		{
 			middlewareName: 'validate',
@@ -254,29 +254,20 @@ export const errorResponseSchemas = [
 Implementing custom extractor example.
 ```typescript
 /**
- * Custom extractor
- * @param configMiddleware config information of a middleware wich should be processed
- * @param endpointMiddleware object containing all necessary information about actual middleware 
- * or undefined in case the middleware is not used in a given endpoint.
+ * Custom formatter
+ * @param {{
+	name: string
+	closure: string
+	isUsed: boolean
+	middlewareArguments: {
+		argumentName: string
+		value: any
+	}[]
+}} middleware object containing all necessary information about actual middleware
  * @return { string } middleware's description
  * */
-export const myExtractor = (configMiddleware: ISwaggerMiddlewareConfig, endpointMiddleware: IEndpointMiddleware | undefined): string => {
-	let value = 'false'
-	const middlewareName = extractMiddlewareName(configMiddleware)
-	if (!endpointMiddleware) {
-		return `${middlewareName}: ${value}`
-	}
-
-	if (endpointMiddleware.middlewareArguments.length > 0) {
-		value = ''
-		endpointMiddleware.middlewareArguments.forEach((middlewareArgument) => {
-			value += `<li>${middlewareArgument.argumentName}: ${JSON.stringify(middlewareArgument.value, null, 2)}</li>`
-		})
-	} else {
-		value = 'true'
-	}
-
-	return `${middlewareName}: ${value === 'true' ? value : `<ul>${value}</ul>`}`
+export const defaultExtractor = (middleware: IMiddleware) => {
+	return `${middleware.name}: ${middleware.isUsed}`
 }
 ```
 

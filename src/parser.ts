@@ -193,7 +193,7 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 								const closure = middleware.closure === 'default' ? 'exports.default' : middleware.closure
 								const location = await locate(handler.handle, {
 									closure: middleware.closure === 'default' ? 'exports.default' : middleware.closure,
-									middlewareArguments: middleware.middlewareArguments
+									maxParamDepth: middleware.maxParamDepth
 								})
 
 								resolve({
