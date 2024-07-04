@@ -4,18 +4,7 @@ import { includes, map, camelCase, merge, forEach, isEqual } from 'lodash'
 
 import getSecuritySchemes, { ISecuritySchemes } from './utils/authSchemes'
 import { AUTH_SCOPE } from './utils/enums'
-import {
-	HttpCode,
-	HttpMethod,
-	IEndpoint,
-	IExternalDocs,
-	IGenerateSwaggerConfig,
-	IInfo,
-	IMiddleware,
-	ISecurity,
-	IServer,
-	ITag
-} from './types/interfaces'
+import { HttpCode, HttpMethod, IEndpoint, IExternalDocs, IGenerateSwaggerConfig, IInfo, IMiddleware, ISecurity, IServer, ITag } from './types/interfaces'
 import { defaultExtractor } from './utils/formatters'
 
 interface IRequestParameter {
@@ -225,7 +214,6 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 				config.middlewares?.forEach((configMiddleware) => {
 					const endpointMiddleware = middlewares.find((middleware) => middleware.name === configMiddleware.middlewareName)
 					const middleware: IMiddleware = {
-						name: configMiddleware.middlewareName,
 						closure: configMiddleware.closure,
 						isUsed: !!endpointMiddleware,
 						middlewareArguments: endpointMiddleware ? endpointMiddleware.middlewareArguments : []
@@ -233,7 +221,7 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 					if (configMiddleware.formatter && typeof configMiddleware.formatter === 'function') {
 						middlewaresDescription += `<p>${configMiddleware.formatter(middleware)}</p>`
 					} else {
-						middlewaresDescription += `<p>${defaultExtractor(middleware)}</p>`
+						middlewaresDescription += `<p>${defaultExtractor(configMiddleware.middlewareName, middleware)}</p>`
 					}
 				})
 

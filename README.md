@@ -255,8 +255,8 @@ Implementing custom extractor example.
 ```typescript
 /**
  * Custom formatter
+ * @param {string} middlewareName
  * @param {{
-	name: string
 	closure: string
 	isUsed: boolean
 	middlewareArguments: {
@@ -266,8 +266,8 @@ Implementing custom extractor example.
 }} middleware object containing all necessary information about actual middleware
  * @return { string } middleware's description
  * */
-export const defaultExtractor = (middleware: IMiddleware) => {
-	return `${middleware.name}: ${middleware.isUsed}`
+export const defaultExtractor = (middlewareName: string, middleware: IMiddleware) => {
+	return `${middlewareName}: ${middleware.isUsed}`
 }
 ```
 

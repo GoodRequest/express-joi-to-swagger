@@ -9,11 +9,12 @@ function extractMiddlewareName(middlewareName: string): string {
 
 /**
  * Works only with first middleware argument and prints his value if it consists of a primitive value array or an object containing such arrays
+ * @param {string} middlewareName
  * @param {IMiddleware} middleware object containing all necessary information about actual middleware
  * @return { string } middleware's description
  * */
-export const basicArrayFormatter = (middleware: IMiddleware): string => {
-	const permissionsResult = `${extractMiddlewareName(middleware.name)}: `
+export const basicArrayFormatter = (middlewareName: string, middleware: IMiddleware): string => {
+	const permissionsResult = `${extractMiddlewareName(middlewareName)}: `
 
 	if (!middleware.isUsed) {
 		return `${permissionsResult}NO`
@@ -46,11 +47,12 @@ export const basicArrayFormatter = (middleware: IMiddleware): string => {
 
 /**
  * Default formatter
+ * @param {string} middlewareName
  * @param {IMiddleware} middleware object containing all necessary information about actual middleware
  * @return { string } middleware's description
  * */
-export const defaultExtractor = (middleware: IMiddleware) => {
-	const middlewareName = extractMiddlewareName(middleware.name)
+export const defaultExtractor = (middlewareName: string, middleware: IMiddleware) => {
+	const name = extractMiddlewareName(middlewareName)
 
-	return `${middlewareName}: ${middleware.isUsed}`
+	return `${name}: ${middleware.isUsed}`
 }

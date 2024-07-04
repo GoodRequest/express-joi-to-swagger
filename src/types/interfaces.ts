@@ -114,7 +114,6 @@ export type IEndpointMiddleware = {
 }
 
 export interface IMiddleware {
-	name: string
 	closure: string
 	isUsed: boolean
 	middlewareArguments: {
