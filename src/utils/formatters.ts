@@ -51,7 +51,7 @@ export const basicArrayFormatter = (middlewareName: string, middleware: IMiddlew
  * @param {IMiddleware} middleware object containing all necessary information about actual middleware
  * @return { string } middleware's description
  * */
-export const defaultExtractor = (middlewareName: string, middleware: IMiddleware) => {
+export const defaultFormatter = (middlewareName: string, middleware: IMiddleware) => {
 	const name = extractMiddlewareName(middlewareName)
 
 	return `${name}: ${middleware.isUsed}`

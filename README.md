@@ -98,7 +98,7 @@ const config: IConfig = {
 		{
 			middlewareName: 'permission',
 			closure: 'permissionMiddleware',
-			extractor: basicArrayFormatter,
+			formatter: basicArrayFormatter,
 			maxParamDepth: 3
 		},
 		{
@@ -251,7 +251,7 @@ export const errorResponseSchemas = [
 ]
 ```
 
-Implementing custom extractor example.
+Implementing custom formatter example.
 ```typescript
 /**
  * Custom formatter
@@ -266,7 +266,7 @@ Implementing custom extractor example.
 }} middleware object containing all necessary information about actual middleware
  * @return { string } middleware's description
  * */
-export const defaultExtractor = (middlewareName: string, middleware: IMiddleware) => {
+export const defaultFormatter = (middlewareName: string, middleware: IMiddleware) => {
 	return `${middlewareName}: ${middleware.isUsed}`
 }
 ```

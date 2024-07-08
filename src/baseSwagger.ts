@@ -5,7 +5,7 @@ import { includes, map, camelCase, merge, forEach, isEqual } from 'lodash'
 import getSecuritySchemes, { ISecuritySchemes } from './utils/authSchemes'
 import { AUTH_SCOPE } from './utils/enums'
 import { HttpCode, HttpMethod, IEndpoint, IExternalDocs, IGenerateSwaggerConfig, IInfo, IMiddleware, ISecurity, IServer, ITag } from './types/interfaces'
-import { defaultExtractor } from './utils/formatters'
+import { defaultFormatter } from './utils/formatters'
 
 interface IRequestParameter {
 	name: string
@@ -221,7 +221,7 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 					if (configMiddleware.formatter && typeof configMiddleware.formatter === 'function') {
 						middlewaresDescription += `<p>${configMiddleware.formatter(middleware)}</p>`
 					} else {
-						middlewaresDescription += `<p>${defaultExtractor(configMiddleware.middlewareName, middleware)}</p>`
+						middlewaresDescription += `<p>${defaultFormatter(configMiddleware.middlewareName, middleware)}</p>`
 					}
 				})
 

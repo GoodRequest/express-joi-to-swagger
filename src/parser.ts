@@ -214,14 +214,14 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 				}
 			})
 
-			const [workflowHandler, ...permissionHandlers] = await Promise.all([workflowHandlerPromise as Promise<ILocation> | null, ...middlewaresHandlerPromises])
+			const [workflowHandler, ...middlewareHandlers] = await Promise.all([workflowHandlerPromise as Promise<ILocation> | null, ...middlewaresHandlerPromises])
 
 			// handle middleware attributeValues
 			const middlewares: IEndpointMiddleware[] = []
-			forEach(permissionHandlers, (permissionHandler) => {
+			forEach(middlewareHandlers, (middlewareHandler) => {
 				middlewares.push({
-					name: permissionHandler.middlewareName,
-					middlewareArguments: permissionHandler.resultProperties
+					name: middlewareHandler.middlewareName,
+					middlewareArguments: middlewareHandler.resultProperties
 				})
 			})
 
