@@ -128,7 +128,7 @@ export interface IGenerateSwaggerConfig {
 	middlewares?: {
 		middlewareName: string
 		closure: string
-		formatter?: (middleware: IMiddleware) => string
+		formatter?: (middlewareName: string, middleware: IMiddleware) => string
 		maxParamDepth?: number
 	}[]
 	requestSchemaName?: string

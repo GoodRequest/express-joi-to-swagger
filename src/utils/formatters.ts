@@ -1,12 +1,6 @@
 import { isArray } from 'lodash'
 import { IMiddleware } from '../types/interfaces'
 
-function extractMiddlewareName(middlewareName: string): string {
-	const tempName = middlewareName.replace('<', '').replace('>', '')
-
-	return `${tempName.charAt(0).toUpperCase() + tempName.slice(1)}`
-}
-
 /**
  * Works only with first middleware argument and prints his value if it consists of a primitive value array or an object containing such arrays
  * @param {string} middlewareName
@@ -14,7 +8,7 @@ function extractMiddlewareName(middlewareName: string): string {
  * @return { string } middleware's description
  * */
 export const basicArrayFormatter = (middlewareName: string, middleware: IMiddleware): string => {
-	const permissionsResult = `${extractMiddlewareName(middlewareName)}: `
+	const permissionsResult = `${middlewareName}: `
 
 	if (!middleware.isUsed) {
 		return `${permissionsResult}NO`
@@ -52,7 +46,5 @@ export const basicArrayFormatter = (middlewareName: string, middleware: IMiddlew
  * @return { string } middleware's description
  * */
 export const defaultFormatter = (middlewareName: string, middleware: IMiddleware) => {
-	const name = extractMiddlewareName(middlewareName)
-
-	return `${name}: ${middleware.isUsed}`
+	return `${middlewareName}: ${middleware.isUsed}`
 }

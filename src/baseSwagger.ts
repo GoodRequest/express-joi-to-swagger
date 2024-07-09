@@ -132,6 +132,12 @@ const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newCompon
 	})
 }
 
+function formatMiddlewareName(middlewareName: string): string {
+	const tempName = middlewareName.replace('<', '').replace('>', '')
+
+	return `${tempName.charAt(0).toUpperCase() + tempName.slice(1)}`
+}
+
 function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: ComponentsSchema, config: IGenerateSwaggerConfig) {
 	const { path, tags, methods } = endpoint
 	const endpointSwaggerSchema = methods
@@ -218,10 +224,11 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 						isUsed: !!endpointMiddleware,
 						middlewareArguments: endpointMiddleware ? endpointMiddleware.middlewareArguments : []
 					}
+					const formattedMiddlewareName = formatMiddlewareName(configMiddleware.middlewareName)
 					if (configMiddleware.formatter && typeof configMiddleware.formatter === 'function') {
-						middlewaresDescription += `<p>${configMiddleware.formatter(middleware)}</p>`
+						middlewaresDescription += `<p>${configMiddleware.formatter(formattedMiddlewareName, middleware)}</p>`
 					} else {
-						middlewaresDescription += `<p>${defaultFormatter(configMiddleware.middlewareName, middleware)}</p>`
+						middlewaresDescription += `<p>${defaultFormatter(formattedMiddlewareName, middleware)}</p>`
 					}
 				})
 
