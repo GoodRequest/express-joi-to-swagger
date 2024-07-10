@@ -180,7 +180,7 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 	const methods = await Promise.all(
 		map(routeMethods, async (method) => {
 			// get middlewares and workflow of endpoint
-			const middlewaresHandlerPromises: Promise<{ closure: string; middlewareName: string } & ILocation>[] = []
+			const middlewaresHandlerPromises: Promise<{ middlewareName: string } & ILocation>[] = []
 			let workflowHandlerPromise: Promise<ILocation> | null = null
 			let security: ISecurity[] = []
 
@@ -190,7 +190,6 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 						middlewaresHandlerPromises.push(
 							// eslint-disable-next-line no-async-promise-executor
 							new Promise(async (resolve) => {
-								const closure = middleware.closure === 'default' ? 'exports.default' : middleware.closure
 								const location = await locate(handler.handle, {
 									closure: middleware.closure === 'default' ? 'exports.default' : middleware.closure,
 									maxParamDepth: middleware.maxParamDepth
@@ -198,7 +197,6 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 
 								resolve({
 									middlewareName: handler.name,
-									closure,
 									...location
 								})
 							})

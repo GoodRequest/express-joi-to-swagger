@@ -16,7 +16,7 @@ function permissionMiddleware(
 		| string[]
 ) {
 	return function permission(_req: Request, _res: Response, next: NextFunction) {
-		// NOTE: permission logic ...
+		// NOTE: console.log(options) is here, so middleware and its params can be found by debugger when parsing endpoints
 		// eslint-disable-next-line no-console
 		console.log(options)
 
