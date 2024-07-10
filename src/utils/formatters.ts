@@ -8,19 +8,19 @@ import { IMiddleware } from '../types/interfaces'
  * @return { string } middleware's description
  * */
 export const basicArrayFormatter = (middlewareName: string, middleware: IMiddleware): string => {
-	const permissionsResult = `${middlewareName}: `
+	const middlewareResult = `${middlewareName}: `
 
 	if (!middleware.isUsed) {
-		return `${permissionsResult}NO`
+		return `${middlewareResult}NO`
 	}
 
 	const { value } = middleware.middlewareArguments[0]
 
 	if (isArray(value)) {
-		return `${permissionsResult} ${value}`
+		return `${middlewareResult} ${value}`
 	}
 
-	return `${permissionsResult}<ul>${Object.keys(value)
+	return `${middlewareResult}<ul>${Object.keys(value)
 		.map((key) => {
 			let result = ''
 
@@ -30,8 +30,11 @@ export const basicArrayFormatter = (middlewareName: string, middleware: IMiddlew
 				}
 			})
 
-			if (result === '' && value[key].allowedPermissions) {
-				result += `<li>${key}: ${value[key].allowedPermissions}</li>`
+			if (result === '' && value[key]) {
+				const keyValue = Object.values(value[key]).at(0)
+				if (keyValue) {
+					result += `<li>${key}: ${keyValue}</li>`
+				}
 			}
 
 			return result
