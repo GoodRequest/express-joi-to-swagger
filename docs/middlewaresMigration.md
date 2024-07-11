@@ -1,16 +1,20 @@
-# Migrating from parsers to middlewares
+# Migrating from permissions to middlewares
 
-Second version supports much wider spector of middlewares which still simply
-config definition and easy further formatting. To use those benefits
-the middleware should be a named HOF (Higher Order Function) with at least 
-one attribute otherwise the middleware will be considered as an unrecognised.
+In the second version, permissions were replaced by middlewares, which supports
+a much wider spectrum of middlewares. The base middleware parsing logic 
+(parsing of permissions) from v1 remained unchanged,so the middleware must 
+be named HOF (Higher Order Function) with at least one parameter, otherwise 
+the middleware will not be recognized.
 
-The only one thing that is necessary to do is to update express-joi-to-swagger configuration like in the example where main changes are:
+The only thing necessary to do is to update express-joi-to-swagger configuration, where main changes are:
 
-- `groupName` so as `paramName` are not necessary anymore as extractor function will receive the copy of values passed into the middleware.
-Max depth of values if 5 otherwise null will be returned
-- `formatter` is a replacement for `permissionsDescriptionFormatter` what is now middleware specific
-- `basicArrayFormatter()` was created to support the return type of old default formatter return type. Can be imported like `import { basicArrayFormatter } from "express-joi-to-swagger/src/utils/extractors";`
+- `groupName` and `paramName` options were removed, format function will receive all parameters of middleware in form of an object
+- `maxParamDepth` option was added to limit depth of parsed parameter of middleware. Default value is 5. If depth of parsed parameter is exceeded, null will be returned
+- `formatter` is a replacement for `permissionsDescriptionFormatter` and now it is middleware 
+specific, i.e. formatter per middleware. If formatter is not provided, defaultFormatter will 
+be used and it will return string in format` ${middlewareName}: ${isUsed}`, e.g. `permission: true`
+- `basicArrayFormatter()` was created to support behavior of old default formatter. It can be imported 
+like this: `import { basicArrayFormatter } from "express-joi-to-swagger/src/utils/extractors";`
 
 ```typescript
 // Old configuration
