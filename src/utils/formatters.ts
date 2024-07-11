@@ -11,7 +11,7 @@ export const basicArrayFormatter = (middlewareName: string, middleware: IMiddlew
 	const middlewareResult = `${middlewareName}: `
 
 	if (!middleware.isUsed) {
-		return `${middlewareResult}NO`
+		return `${middlewareResult}false`
 	}
 
 	const { value } = middleware.middlewareArguments[0]
