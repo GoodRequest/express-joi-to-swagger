@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { Express } from 'express'
+import { basicArrayFormatter, defaultFormatter } from './utils/formatters'
 
 import generateUI from './ui'
 import parseExpressApp from './parser'
@@ -36,3 +37,4 @@ const generateSwagger = async (app: Express, config: IGenerateSwaggerConfig) => 
 }
 
 export default generateSwagger
+export const formatters = { basicArrayFormatter, defaultFormatter }
