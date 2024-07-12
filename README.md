@@ -13,6 +13,10 @@ For more information see **Config parameters** bellow ⬇.
 This simple tool does not require you to write any more code that necessary. Documentation is generated from source code itself
 without using annotations or separate doc files.
 
+## Migration guides
+
+- [Middlewares migration from v1 to v2](docs/middlewaresMigration.md) 
+
 ## Installation
 
 Use the package manager (*npm* or *yarn*) to install dependencies.
@@ -37,46 +41,45 @@ endpoint permissions in the documentation as well you need to name the function 
 array as its input parameter.
 
 You can find simple examples of all mentioned in the demo folder of this repository. Quick usage example can also be found below ⬇.
- 
+
 
 ## Config parameters
 
-| Name										| Type			| Required | Description |
-| ------------------------------------------|---------------|:--------:|-------------|
-| **outputPath**							| string		| 	✅	| Path to directory where output JSON file should be created. |
-| **generateUI**							| boolean		| 	✅	| Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated. |
-| **permissions**							| object		| 	❌	| Configuration parameters for parsing permissions. |
-| **permissions**.parser					| function		| 	❌	| Custom parse function for permission middleware. |
-| **permissions**.middlewareName			| string		| 	✅	| Name of the middleware responsible for handling API permissions. |
-| **permissions**.closure					| string		| 	✅	| Name of the permission middleware closure. |
-| **permissions**.paramName					| string		| 	❌	| Name of the parameter containing permissions passed to middleware. |
-| **permissionsFormatter**					| function		| 	❌	| Custom formatting function for permissions description. |
-| **requestSchemaName**						| string		| 	❌	| Name of the Joi schema object defining request structure. |
-| **responseSchemaName**					| string		| 	❌	| Name of the Joi schema object defining response structure. |
-| **requestSchemaParams**					| any[]			| 	❌	| Param for ability to pass mock params for requestSchema. |
-| **responseSchemaParams**					| any[]			| 	❌	| Param for ability to pass mock params for responseSchema. |
-| **errorResponseSchemaName**				| string		| 	❌	| Name of the Joi schema object defining error responses structure. |
-| **businessLogicName**						| string		| 	✅	| Name of the function responsible for handling business logic of the request. |
-| **swaggerInitInfo**						| ISwaggerInit	| 	❌	| Swagger initial information. |
-| **swaggerInitInfo**.servers				| IServer[]		| 	❌	| List of API servers. |
-| **swaggerInitInfo**.servers.url			| string		| 	❌	| API server URL. |
-| **swaggerInitInfo**.info					| IInfo			| 	❌	| Basic API information. |
-| **swaggerInitInfo**.info.description		| string		| 	❌	| API description. |
-| **swaggerInitInfo**.info.version			| string		| 	❌	| API version. |
-| **swaggerInitInfo**.info.title			| string		| 	❌	| API title. |
-| **swaggerInitInfo**.info.termsOfService 	| string		| 	❌	| Link to terms of service. |
-| **swaggerInitInfo**.info.contact			| IContact		| 	❌	| Swagger initial information. |
-| **swaggerInitInfo**.info.contact.email	| string		| 	✅	| Contact email. |
-| **swaggerInitInfo**.info.license			| ILicense		| 	❌	| Swagger initial information. |
-| **swaggerInitInfo**.info.license.name		| string		| 	✅	| License name. |
-| **swaggerInitInfo**.info.license.url		| string		| 	✅	| License url. |
-| **tags**									| string		| 	❌	| Configuration parameters for parsing [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/). |
-| **tags**.baseUrlSegmentsLength 			| number		| 	❌	| Number of base URL segments. |
-| **tags**.joinTags 						| boolean		| 	❌	| If set to true, array of parsed tags will be joined to string by **tagSeparator**, otherwise array of tags is returned. |
-| **tags**.tagSeparator 					| string		| 	❌	| String used to join parsed tags. |
-| **tags**.versioning 						| boolean		| 	❌	| If you are using multiple versions of API, you can separate endpoints also by API version. In this case it is necessary to define param **"baseUrlSegmentsLength"**. |
-| **tags**.versionSeparator 				| string		| 	❌	| String used to separate parsed tags from API version tag is versioning == true. |
-| **deprecationPathPattern**				| string		| 	❌	| If provided, all versions of endpoints except latest will be marked as deprecated. <br> Pattern needs to specify api route from start segment to version segment, which have to be specified as **"v\***". <br> For example if we have **api/v1/users** and **api/v2/users** endpoints and we set **deprecationPathPattern='/api/v\*/'**, **api/v1/users** endpoint will be automatically marked as deprecated. For complex route schemas use pattern like **deprecationPathPattern='/api/.+/v\*/'**, **api/b2b/v1/users** |
+| Name										                            | Type			       | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+|-------------------------------------------|---------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **outputPath**							                     | string		      | 	✅	| Path to directory where output JSON file should be created.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **generateUI**							                     | boolean		     | 	✅	| Whether [Swagger UI](https://swagger.io/tools/swagger-ui/) should be generated.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **middlewares**							                    | object		      | 	❌	| Configuration parameters for parsing middlewares.                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **middlewares**.formatter					            | function		    | 	❌	| Custom formatter function for middleware. If not provided, the default one will be used.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **middlewares**.middlewareName			         | string		      | 	✅	| Name of the middleware.                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **middlewares**.closure					              | string		      | 	✅	| Name of the middleware closure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **middlewares**.maxParamDepth					              | number		      | 	❌	| Max depth of middleware parameter. Default value is 5.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **requestSchemaName**						               | string		      | 	❌	| Name of the Joi schema object defining request structure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **responseSchemaName**					               | string		      | 	❌	| Name of the Joi schema object defining response structure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **requestSchemaParams**					              | any[]			      | 	❌	| Param for ability to pass mock params for requestSchema.                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **responseSchemaParams**					             | any[]			      | 	❌	| Param for ability to pass mock params for responseSchema.                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **errorResponseSchemaName**				           | string		      | 	❌	| Name of the Joi schema object defining error responses structure.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **businessLogicName**						               | string		      | 	✅	| Name of the function responsible for handling business logic of the request.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **swaggerInitInfo**						                 | ISwaggerInit	 | 	❌	| Swagger initial information.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **swaggerInitInfo**.servers				           | IServer[]		   | 	❌	| List of API servers.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **swaggerInitInfo**.servers.url			        | string		      | 	❌	| API server URL.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **swaggerInitInfo**.info					             | IInfo			      | 	❌	| Basic API information.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **swaggerInitInfo**.info.description		    | string		      | 	❌	| API description.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **swaggerInitInfo**.info.version			       | string		      | 	❌	| API version.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **swaggerInitInfo**.info.title			         | string		      | 	❌	| API title.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **swaggerInitInfo**.info.termsOfService 	 | string		      | 	❌	| Link to terms of service.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **swaggerInitInfo**.info.contact			       | IContact		    | 	❌	| Swagger initial information.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **swaggerInitInfo**.info.contact.email	   | string		      | 	✅	| Contact email.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **swaggerInitInfo**.info.license			       | ILicense		    | 	❌	| Swagger initial information.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **swaggerInitInfo**.info.license.name		   | string		      | 	✅	| License name.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **swaggerInitInfo**.info.license.url		    | string		      | 	✅	| License url.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **tags**									                         | string		      | 	❌	| Configuration parameters for parsing [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/).                                                                                                                                                                                                                                                                                                                                                                                                         |
+| **tags**.baseUrlSegmentsLength 			        | number		      | 	❌	| Number of base URL segments.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **tags**.joinTags 						                  | boolean		     | 	❌	| If set to true, array of parsed tags will be joined to string by **tagSeparator**, otherwise array of tags is returned.                                                                                                                                                                                                                                                                                                                                                                                                    |
+| **tags**.tagSeparator 					               | string		      | 	❌	| String used to join parsed tags.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **tags**.versioning 						                | boolean		     | 	❌	| If you are using multiple versions of API, you can separate endpoints also by API version. In this case it is necessary to define param **"baseUrlSegmentsLength"**.                                                                                                                                                                                                                                                                                                                                                       |
+| **tags**.versionSeparator 				            | string		      | 	❌	| String used to separate parsed tags from API version tag is versioning == true.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **deprecationPathPattern**				            | string		      | 	❌	| If provided, all versions of endpoints except latest will be marked as deprecated. <br> Pattern needs to specify api route from start segment to version segment, which have to be specified as **"v\***". <br> For example if we have **api/v1/users** and **api/v2/users** endpoints and we set **deprecationPathPattern='/api/v\*/'**, **api/v1/users** endpoint will be automatically marked as deprecated. For complex route schemas use pattern like **deprecationPathPattern='/api/.+/v\*/'**, **api/b2b/v1/users** |
 
 
 ## Usage example
@@ -91,11 +94,18 @@ import app from './your-path-to-express-app'
 const config: IConfig = {
 	outputPath: path.join(__dirname, 'dist'),
 	generateUI: true,
-	permissions: {
-		middlewareName: 'permission',
-		closure: 'permissionMiddleware',
-		paramName: 'allowPermissions'
-	},
+	middlewares: [
+		{
+			middlewareName: 'permission',
+			closure: 'permissionMiddleware',
+			formatter: basicArrayFormatter,
+			maxParamDepth: 3
+		},
+		{
+			middlewareName: 'validate',
+			closure: 'validationMiddleware'
+		}
+	],
 	requestSchemaName: 'requestSchema',
 	requestSchemaParams: [mockFn],
 	responseSchemaName: 'responseSchema',
@@ -239,6 +249,26 @@ export const errorResponseSchemas = [
 		)
 	}).description('404')
 ]
+```
+
+Implementing custom formatter example.
+```typescript
+/**
+ * Custom formatter
+ * @param {string} middlewareName
+ * @param {{
+	closure: string
+	isUsed: boolean
+	middlewareArguments: {
+		argumentName: string
+		value: any
+	}[]
+}} middleware object containing all necessary information about actual middleware
+ * @return { string } middleware's description
+ * */
+export const defaultFormatter = (middlewareName: string, middleware: IMiddleware) => {
+	return `${middlewareName}: ${middleware.isUsed}`
+}
 ```
 
 ## Result

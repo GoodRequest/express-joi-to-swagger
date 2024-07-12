@@ -1,9 +1,8 @@
 import { Deferred } from './deffered.class'
+import { IEndpointMiddleware } from '../types/interfaces'
 
 export interface ILocation {
-	resultProperties: {
-		result: any[]
-	}
+	resultProperties: IEndpointMiddleware['middlewareArguments']
 	post: any
 	path: string
 }

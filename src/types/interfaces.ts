@@ -105,16 +105,31 @@ interface ISwaggerInitInfo {
 	security?: IConfigSecurity
 }
 
+export type IEndpointMiddleware = {
+	name: string
+	middlewareArguments: {
+		argumentName: string
+		value: any
+	}[]
+}
+
+export interface IMiddleware {
+	closure: string
+	isUsed: boolean
+	middlewareArguments: {
+		argumentName: string
+		value: any
+	}[]
+}
+
 export interface IGenerateSwaggerConfig {
 	outputPath: string
 	generateUI: boolean
-	permissionsDescriptionFormatter?: (permissions: { [groupName: string]: string[] }) => string
-	permissions?: {
+	middlewares?: {
 		middlewareName: string
 		closure: string
-		paramName?: string
-		groupName?: string
-		parser?: (param: any, scopes: any) => Promise<any>
+		formatter?: (middlewareName: string, middleware: IMiddleware) => string
+		maxParamDepth?: number
 	}[]
 	requestSchemaName?: string
 	requestSchemaParams?: any[]
@@ -144,16 +159,13 @@ export type IEndpoint = {
 	tags: string[]
 	methods: {
 		method: HttpMethod
-		permissions: {
-			[groupName: string]: string[]
-		}
 		security: ISecurity[]
 		requestJoiSchema: Schema | null
 		responses: {
 			responseJoiSchema: Schema
 			code: HttpCode
 		}[]
-		middlewares: string[]
+		middlewares: IEndpointMiddleware[]
 	}[]
 }
 

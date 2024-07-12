@@ -4,7 +4,8 @@ import { includes, map, camelCase, merge, forEach, isEqual } from 'lodash'
 
 import getSecuritySchemes, { ISecuritySchemes } from './utils/authSchemes'
 import { AUTH_SCOPE } from './utils/enums'
-import { HttpCode, HttpMethod, IEndpoint, IExternalDocs, IGenerateSwaggerConfig, IInfo, ISecurity, IServer, ITag } from './types/interfaces'
+import { HttpCode, HttpMethod, IEndpoint, IExternalDocs, IGenerateSwaggerConfig, IInfo, IMiddleware, ISecurity, IServer, ITag } from './types/interfaces'
+import { defaultFormatter } from './utils/formatters'
 
 interface IRequestParameter {
 	name: string
@@ -117,26 +118,6 @@ const createRequestBodySwaggerSchema = (requestBodyDataSchema: SwaggerSchema) =>
 	}
 })
 
-const getPermissionDescription = (permissions: { [groupName: string]: string[] }) => {
-	const permissionsResult = 'Permissions:'
-
-	const permissionGroupNames = Object.keys(permissions)
-	const hasDefaultGroup = includes(permissionGroupNames, 'default')
-
-	if (permissionGroupNames.length === 0) {
-		return `${permissionsResult} NO`
-	}
-
-	if (hasDefaultGroup && Object.keys(permissions).length === 1) {
-		return `${permissionsResult} [${permissions.default.join(', ')}]`
-	}
-
-	return `${permissionsResult}<ul>${map(
-		permissions,
-		(permissionGroup, permissionGroupName) => `<li>${permissionGroupName}${permissionGroup.length > 0 ? `: [${permissionGroup.join(', ')}]` : ''}</li>`
-	).join('')}</ul>`
-}
-
 const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newComponents: ComponentsSchema) => {
 	forEach(newComponents, (schemas, schemaType) => {
 		if (existingComponents[schemaType]) {
@@ -151,12 +132,18 @@ const checkUniqueSharedSchema = (existingComponents: ComponentsSchema, newCompon
 	})
 }
 
+function formatMiddlewareName(middlewareName: string): string {
+	const tempName = middlewareName.replace('<', '').replace('>', '')
+
+	return `${tempName.charAt(0).toUpperCase() + tempName.slice(1)}`
+}
+
 function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: ComponentsSchema, config: IGenerateSwaggerConfig) {
 	const { path, tags, methods } = endpoint
 	const endpointSwaggerSchema = methods
 		.map((methodData) => {
 			try {
-				const { method, responses, permissions, security } = methodData
+				const { method, responses, security, middlewares } = methodData
 				// handle responses
 				const responsesSwaggerSchema = responses
 					.map((response) => {
@@ -229,16 +216,23 @@ function generateEndpointSwaggerSchema(endpoint: IEndpoint, sharedComponents: Co
 					description = description.replace('@deprecated', '').trim()
 				}
 
-				let permissionDescription = ''
-				if (config.permissions) {
-					if (config.permissionsDescriptionFormatter && typeof config.permissionsDescriptionFormatter === 'function') {
-						permissionDescription = config.permissionsDescriptionFormatter(permissions)
-					} else {
-						permissionDescription = getPermissionDescription(permissions)
+				let middlewaresDescription = ''
+				config.middlewares?.forEach((configMiddleware) => {
+					const endpointMiddleware = middlewares.find((middleware) => middleware.name === configMiddleware.middlewareName)
+					const middleware: IMiddleware = {
+						closure: configMiddleware.closure,
+						isUsed: !!endpointMiddleware,
+						middlewareArguments: endpointMiddleware ? endpointMiddleware.middlewareArguments : []
 					}
-				}
+					const formattedMiddlewareName = formatMiddlewareName(configMiddleware.middlewareName)
+					if (configMiddleware.formatter && typeof configMiddleware.formatter === 'function') {
+						middlewaresDescription += `<p>${configMiddleware.formatter(formattedMiddlewareName, middleware)}</p>`
+					} else {
+						middlewaresDescription += `<p>${defaultFormatter(formattedMiddlewareName, middleware)}</p>`
+					}
+				})
 
-				const resultDescription = [description, permissionDescription].filter((v) => !!v).join('<br>')
+				const resultDescription = [description, middlewaresDescription].filter((v) => !!v).join('<br>')
 
 				const operationId = camelCase(`${method}${path}`)
 
