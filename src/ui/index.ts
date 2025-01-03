@@ -22,7 +22,7 @@ export default (outputPath: string, config: IGenerateSwaggerConfig) =>
 					rules: [
 						{
 							test: /\.css$/i,
-							use: ['style-loader', 'css-loader']
+							use: [require.resolve('style-loader'), require.resolve('css-loader')]
 						}
 					]
 				},
