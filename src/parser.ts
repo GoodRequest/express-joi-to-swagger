@@ -7,9 +7,17 @@ import { ILocation } from './func-loc/cache-amanger.class'
 import { HttpCode, HttpMethod, IEndpoint, IEndpointMiddleware, IGenerateSwaggerConfig, ISecurity } from './types/interfaces'
 import { AUTH_SCOPE, httpCodes } from './utils/enums'
 
-const regexpExpressRegexp = /^\/\^\\\/(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\(\[\^\\\/]\+\?\)\)))\\\/.*/
+const regexpExpressRegexp = /^\/\^\\\/(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\(\[\^\\\/]\+\?\)\)))\\\/.*/ // before express v4.20.0
+const regexpExpressRegexp2 = /^\/\^\\?\/?(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\\?\/?\([^)]+\)\)))\\\/.*/ // after express v4.20.0
+
 const expressRootRegexp = '/^\\/?(?=\\/|$)/i'
-const regexpExpressParamRegexp = /\(\?:\(\[\^\\\/]\+\?\)\)/g
+
+const regexpExpressParamRegexp = /\(\?:\(\[\^\\\/]\+\?\)\)/g // before express v4.20.0
+const regexpExpressParamRegexp2 = /\(\?:\\?\\?\/?\([^)]+\)\)/g // after express v4.20.0
+
+const regexpExpressParamReplace = /\(\?:\(\[\^\\\/]\+\?\)\)/ // before express v4.20.0
+const regexpExpressParamReplace2 = /\(\?:\\?\\?\/?\([^)]+\)\)/ // after express v4.20.0
+
 const stackItemValidNames = ['router', 'bound dispatch', 'mounted_app']
 
 const getHttpCode = (code?: string | null | undefined) => {
@@ -74,7 +82,7 @@ const addEndpoints = (currentEndpoints: IEndpoint[], newEndpoint: IEndpoint) => 
  * @param {string} pathRegexp Path segment
  * @returns {boolean} Returns true if path regexp is matched by regexpExpressParamRegexp, false otherwise
  */
-const hasParams = (pathRegexp: string) => regexpExpressParamRegexp.test(pathRegexp)
+const hasParams = (pathRegexp: string, parser: RegExp) => parser.test(pathRegexp)
 
 /**
  * Checks if provided path segment contains a path parameter
@@ -84,28 +92,46 @@ const hasParams = (pathRegexp: string) => regexpExpressParamRegexp.test(pathRege
  */
 const isPathParam = (pathSegment: string) => pathSegment.indexOf(':') > -1
 
+const testPathRegexp = (pathRegexp: string) => {
+	if (regexpExpressRegexp.test(pathRegexp)) {
+		return { valid: true, parsers: { regexpExpressRegexp, regexpExpressParamRegexp, regexpExpressParamReplace } }
+	}
+	if (regexpExpressRegexp2.test(pathRegexp)) {
+		return {
+			valid: true,
+			parsers: { regexpExpressRegexp: regexpExpressRegexp2, regexpExpressParamRegexp: regexpExpressParamRegexp2, regexpExpressParamReplace: regexpExpressParamReplace2 }
+		}
+	}
+	return { valid: false }
+}
+
 /**
  * Parses endpoint path from provided express path regexp
  *
  * @param {string} expressPathRegexp Regex patch from express route item
  * @param {{ name: string }[]} params Path params from express route item
+ * @param {{parser: { regexpExpressRegexp: RegExp; regexpExpressParamRegexp: RegExp; regexpExpressParamReplace: RegExp }}} parsers for processing express regexp path
  * @returns string
  */
-const parseExpressPath = (expressPathRegexp: string, params: { name: string }[]) => {
-	let parsedPath = regexpExpressRegexp.exec(expressPathRegexp)
+const parseExpressPath = (
+	expressPathRegexp: string,
+	params: { name: string }[],
+	parsers: { regexpExpressRegexp: RegExp; regexpExpressParamRegexp: RegExp; regexpExpressParamReplace: RegExp }
+) => {
+	let parsedPath = parsers.regexpExpressRegexp.exec(expressPathRegexp)
 	let parsedRegexp = expressPathRegexp
 	let paramIdx = 0
 
-	while (hasParams(parsedRegexp)) {
+	while (hasParams(parsedRegexp, parsers.regexpExpressParamRegexp)) {
 		const paramId = `:${params[paramIdx].name}`
 
-		parsedRegexp = parsedRegexp.toString().replace(/\(\?:\(\[\^\\\/]\+\?\)\)/, paramId)
+		parsedRegexp = parsedRegexp.toString().replace(parsers.regexpExpressParamReplace, paramId)
 
 		paramIdx += 1
 	}
 
 	if (parsedRegexp !== expressPathRegexp) {
-		parsedPath = regexpExpressRegexp.exec(parsedRegexp)
+		parsedPath = parsers.regexpExpressRegexp.exec(parsedRegexp)
 	}
 
 	return parsedPath?.[1].replace(/\\\//g, '/')
@@ -352,8 +378,13 @@ const parseEndpoints = async (app: Express, config: IGenerateSwaggerConfig, base
 					}
 				} else if (stackItemValidNames.indexOf(stackItem.name) > -1) {
 					let resultBasePath = basePath
-					if (regexpExpressRegexp.test(stackItem.regexp)) {
-						const parsedPath = parseExpressPath(stackItem.regexp, stackItem.keys)
+					const testResult = testPathRegexp(stackItem.regexp)
+					if (testResult.valid) {
+						const parsedPath = parseExpressPath(
+							stackItem.regexp,
+							stackItem.keys,
+							testResult.parsers as { regexpExpressRegexp: RegExp; regexpExpressParamRegexp: RegExp; regexpExpressParamReplace: RegExp }
+						)
 
 						resultBasePath = `${basePath}/${parsedPath}`
 					} else if (!stackItem.path && stackItem.regexp && stackItem.regexp.toString() !== expressRootRegexp) {

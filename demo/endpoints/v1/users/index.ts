@@ -6,9 +6,13 @@ import * as getUsers from './get.users'
 import * as getUser from './get.user'
 import * as postUser from './post.user'
 
+import postRouter from './posts'
+
 const router = express.Router()
 
 export default () => {
+	router.use('/:userID/posts', postRouter())
+
 	router.get('/', validationMiddleware(getUsers.requestSchema), getUsers.businessLogic)
 
 	router.get(
