@@ -1,19 +1,46 @@
 name: Publish package
+
 on:
   workflow_dispatch:
   release:
-    types: [created]
+    types: [ 'created' ]
+    
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+    
+#     steps:
+#       - uses: actions/checkout@v3
+      
+#       - uses: actions/setup-node@v3
+#         with:
+#           node-version: '16.x'
+#           registry-url: 'https://registry.npmjs.org'
+#           cache: 'npm'
+#       - run: npm install --legacy-peer-deps
+      
+#       - run: npm publish --access public
+#         env:
+#           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
+          
+      - run: npm install -g npm@latest # npm >= 11.5.1
+      
       - run: npm install --legacy-peer-deps
-      - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+      
+      - run: npm publish
