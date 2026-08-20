@@ -62,7 +62,7 @@ void fetch(`archive.json?v=${APP_VERSION}`)
 			return a.name.localeCompare(b.name)
 		})
 
-		// eslint-disable-next-line no-undef, no-void
+		// eslint-disable-next-line no-undef
 		const currVersion = find(versionsData, { name: `v${APP_VERSION}` })
 
 		SwaggerUIBundle({

@@ -5,6 +5,8 @@
         "module": "commonjs",
     	"outDir": "./dist",
 		"sourceMap": true,
+        "strict": false,
+        "rootDir": "./src",
         "noImplicitAny": true,
 		"declaration": true,
 		"strictNullChecks": true,
