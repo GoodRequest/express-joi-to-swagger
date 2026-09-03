@@ -25,7 +25,7 @@
 		"compare-versions": "6.1.1",
 		"create-file-webpack": "1.0.2",
 		"css-loader": "7.1.4",
-		"express": "4.22.2",
+		"express": "5.2.1",
 		"html-webpack-plugin": "5.6.8",
 		"joi": "^18.2.5",
 		"joi-to-swagger": "github:GoodRequest/joi-to-swagger#cea5393",
