@@ -45,7 +45,7 @@
 		"@types/passport": "1.0.17",
 		"@types/swagger-ui-dist": "3.30.6",
 		"@typescript-eslint/eslint-plugin": "8.70.0",
-		"@typescript-eslint/parser": "8.70.0",
+		"@typescript-eslint/parser": "8.70.1",
 		"@typescript/native": "npm:typescript@7.0.2",
 		"ajv": "8.20.0",
 		"copyfiles": "2.4.1",
