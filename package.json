@@ -25,7 +25,6 @@
 		"compare-versions": "6.1.1",
 		"create-file-webpack": "1.0.2",
 		"css-loader": "7.1.5",
-		"express": "4.22.3",
 		"html-webpack-plugin": "5.6.8",
 		"joi": "^18.2.9",
 		"joi-to-swagger": "github:GoodRequest/joi-to-swagger#cea5393",
@@ -55,6 +54,7 @@
 		"eslint-config-prettier": "10.1.8",
 		"eslint-plugin-import": "2.32.0",
 		"eslint-plugin-prettier": "5.5.6",
+		"express": "4.22.3",
 		"globals": "17.12.0",
 		"husky": "9.1.7",
 		"prettier": "3.9.7",
@@ -73,5 +73,8 @@
 		"express",
 		"joi",
 		"swagger"
-	]
+	],
+	"peerDependencies": {
+		"express": "^4.17.0 || ^5.0.0"
+	}
 }

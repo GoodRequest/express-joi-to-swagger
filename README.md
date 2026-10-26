@@ -40,6 +40,16 @@ request and response Joi schemas in a documentation they need to be named the sa
 endpoint permissions in the documentation as well you need to name the function responsible for handling this and provide permissions
 array as its input parameter.
 
+✖ Express 4 and Express 5 are supported. Express 5 does not expose path regexps of its router layers, so routes are read using
+`listRoutes` and `layer.rawPath` added to [router](https://github.com/pillarjs/router) in [pillarjs/router#174](https://github.com/pillarjs/router/pull/174).
+If your Express 5 app runs on a router version without this feature, generation fails with an error. Until a router version containing it is released,
+you can pin it, e.g. with pnpm `overrides`:
+
+```yaml
+overrides:
+  router: github:pillarjs/router#d79402ffaf7ef4dc25fc05bf3d9e3e99c01dc6a5
+```
+
 You can find simple examples of all mentioned in the demo folder of this repository. Quick usage example can also be found below ⬇.
 
 

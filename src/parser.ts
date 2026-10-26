@@ -1,5 +1,5 @@
-import { Express, IRoute, IRouter } from 'express'
-import { compact, forEach, map, slice, startsWith, trimStart, uniq } from 'lodash'
+import { Express } from 'express'
+import { compact, forEach, trimStart, uniq } from 'lodash'
 import { Schema } from 'joi'
 
 import { locate } from './func-loc'
@@ -7,24 +7,78 @@ import { ILocation } from './func-loc/cache-amanger.class'
 import { HttpCode, HttpMethod, IEndpoint, IEndpointMiddleware, IGenerateSwaggerConfig, ISecurity } from './types/interfaces'
 import { AUTH_SCOPE, httpCodes } from './utils/enums'
 
-const regexpExpressRegexp = /^\/\^\\\/(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\(\[\^\\\/]\+\?\)\)))\\\/.*/ // before express v4.20.0
-const regexpExpressRegexp2 = /^\/\^\\?\/?(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\\?\/?\([^)]+\)\)))\\\/.*/ // after express v4.20.0
+// #region types
+type RouteHandler = Parameters<typeof locate>[0]
 
-const expressRootRegexp = '/^\\/?(?=\\/|$)/i'
+/**
+ * Handler registered on the route (e.g. middleware or business logic)
+ */
+interface IRouteStackItem {
+	name: string
+	handle: RouteHandler
+}
 
-const regexpExpressParamRegexp = /\(\?:\(\[\^\\\/]\+\?\)\)/g // before express v4.20.0
-const regexpExpressParamRegexp2 = /\(\?:\\?\\?\/?\([^)]+\)\)/g // after express v4.20.0
+/**
+ * Express route (same shape in express 4 router and router v2)
+ */
+interface IExpressRoute {
+	path: string
+	methods: { [method: string]: boolean }
+	stack: IRouteStackItem[]
+}
 
-const regexpExpressParamReplace = /\(\?:\(\[\^\\\/]\+\?\)\)/ // before express v4.20.0
-const regexpExpressParamReplace2 = /\(\?:\\?\\?\/?\([^)]+\)\)/ // after express v4.20.0
+type LayerPath = string | RegExp
 
-const stackItemValidNames = ['router', 'bound dispatch', 'mounted_app']
+/**
+ * Layer of express 4 router
+ */
+interface IExpress4Layer {
+	name: string
+	regexp: RegExp
+	keys: { name: string }[]
+	path?: string
+	route?: IExpressRoute
+	handle: IExpress4App
+}
 
+/**
+ * Express 4 app (router is in `_router`), express 4 router or other handler (e.g. mounted app) which is not traversable
+ */
+interface IExpress4App {
+	stack?: IExpress4Layer[]
+	_router?: { stack: IExpress4Layer[] }
+}
+
+/**
+ * Layer of router with `listRoutes` support (pillarjs/router#174)
+ */
+interface IListRoutesLayer {
+	rawPath: LayerPath | LayerPath[]
+	route?: IExpressRoute
+	handle: { stack?: unknown }
+}
+
+/**
+ * Router with `listRoutes` support (pillarjs/router#174)
+ */
+interface IListRoutesRouter {
+	stack: IListRoutesLayer[]
+	listRoutes: () => { path: LayerPath; methods?: string[]; router?: unknown }[]
+}
+
+interface IExpress4PathParsers {
+	regexpExpressRegexp: RegExp
+	regexpExpressParamRegexp: RegExp
+	regexpExpressParamReplace: RegExp
+}
+// #endregion
+
+// #region common
 const getHttpCode = (code?: string | null | undefined) => {
 	if (code) {
 		const codeInt = +code
 
-		const isKnownCode = httpCodes.includes(<any>codeInt)
+		const isKnownCode = httpCodes.includes(codeInt as HttpCode)
 		if (isKnownCode) {
 			return codeInt as HttpCode
 		}
@@ -36,13 +90,13 @@ const getHttpCode = (code?: string | null | undefined) => {
 /**
  * Returns all http methods detected for the provided route
  *
- * @param {IRoute & { methods: { [method: string]: boolean } }} route Express route object from which to extract the methods
+ * @param {IExpressRoute} route Express route object from which to extract the methods
  * @returns {HttpMethod[]} Array of extracted http methods
  */
-const getRouteMethods = (route: IRoute & { methods?: { [method: string]: boolean } }) => {
+const getRouteMethods = (route: IExpressRoute) => {
 	const methods: HttpMethod[] = []
 
-	map(Object.keys(route?.methods || {}), (method) => {
+	Object.keys(route?.methods ?? {}).forEach((method) => {
 		if (method !== 'get' && method !== 'post' && method !== 'patch' && method !== 'put' && method !== 'delete') {
 			throw new Error(`Unsupported method: ${method}`)
 		}
@@ -76,13 +130,6 @@ const addEndpoints = (currentEndpoints: IEndpoint[], newEndpoint: IEndpoint) => 
 		currentEndpoints.push(newEndpoint)
 	}
 }
-/**
- * Checks if provided path segment contains a param regexp
- *
- * @param {string} pathRegexp Path segment
- * @returns {boolean} Returns true if path regexp is matched by regexpExpressParamRegexp, false otherwise
- */
-const hasParams = (pathRegexp: string, parser: RegExp) => parser.test(pathRegexp)
 
 /**
  * Checks if provided path segment contains a path parameter
@@ -91,51 +138,6 @@ const hasParams = (pathRegexp: string, parser: RegExp) => parser.test(pathRegexp
  * @return {boolean} Returns true if path segment contains ':', false otherwise
  */
 const isPathParam = (pathSegment: string) => pathSegment.indexOf(':') > -1
-
-const testPathRegexp = (pathRegexp: string) => {
-	if (regexpExpressRegexp.test(pathRegexp)) {
-		return { valid: true, parsers: { regexpExpressRegexp, regexpExpressParamRegexp, regexpExpressParamReplace } }
-	}
-	if (regexpExpressRegexp2.test(pathRegexp)) {
-		return {
-			valid: true,
-			parsers: { regexpExpressRegexp: regexpExpressRegexp2, regexpExpressParamRegexp: regexpExpressParamRegexp2, regexpExpressParamReplace: regexpExpressParamReplace2 }
-		}
-	}
-	return { valid: false }
-}
-
-/**
- * Parses endpoint path from provided express path regexp
- *
- * @param {string} expressPathRegexp Regex patch from express route item
- * @param {{ name: string }[]} params Path params from express route item
- * @param {{parser: { regexpExpressRegexp: RegExp; regexpExpressParamRegexp: RegExp; regexpExpressParamReplace: RegExp }}} parsers for processing express regexp path
- * @returns string
- */
-const parseExpressPath = (
-	expressPathRegexp: string,
-	params: { name: string }[],
-	parsers: { regexpExpressRegexp: RegExp; regexpExpressParamRegexp: RegExp; regexpExpressParamReplace: RegExp }
-) => {
-	let parsedPath = parsers.regexpExpressRegexp.exec(expressPathRegexp)
-	let parsedRegexp = expressPathRegexp
-	let paramIdx = 0
-
-	while (hasParams(parsedRegexp, parsers.regexpExpressParamRegexp)) {
-		const paramId = `:${params[paramIdx].name}`
-
-		parsedRegexp = parsedRegexp.toString().replace(parsers.regexpExpressParamReplace, paramId)
-
-		paramIdx += 1
-	}
-
-	if (parsedRegexp !== expressPathRegexp) {
-		parsedPath = parsers.regexpExpressRegexp.exec(parsedRegexp)
-	}
-
-	return parsedPath?.[1].replace(/\\\//g, '/')
-}
 
 /**
  * Parses tags for provided endpoint path
@@ -169,8 +171,8 @@ const parseTags = (basePath: string[], path: string[], tagsConfig: IGenerateSwag
 		if (tagsConfig.versionLength) {
 			const cutLength = tagsConfig.versionLength < basePath.length ? tagsConfig.versionLength : basePath.length
 			const basePathEnd = tagsConfig.baseUrlSegmentsLength ?? 0
-			const withoutBasePath = slice(basePath, basePathEnd, basePath.length)
-			const tempTags = slice(withoutBasePath, 0, cutLength)
+			const withoutBasePath = basePath.slice(basePathEnd, basePath.length)
+			const tempTags = withoutBasePath.slice(0, cutLength)
 
 			tags = [tempTags.join(tagsConfig.versionSeparator), ...tags]
 		} else {
@@ -178,7 +180,7 @@ const parseTags = (basePath: string[], path: string[], tagsConfig: IGenerateSwag
 		}
 	}
 
-	tags = compact(uniq(map(tags, (tag) => tag.charAt(0).toUpperCase() + tag.slice(1))))
+	tags = compact(uniq(tags.map((tag) => tag.charAt(0).toUpperCase() + tag.slice(1))))
 
 	let result = tagsConfig.joinTags ? [tags.join(tagsConfig.tagSeparator)] : tags
 
@@ -194,23 +196,23 @@ const parseTags = (basePath: string[], path: string[], tagsConfig: IGenerateSwag
  * Parses all endpoints from provided express route.
  * It will extract request/response schemas, security, middlewares with their parameter values and other information from the route.
  *
- * @param {IRoute} route
+ * @param {IExpressRoute} route
  * @param {string} basePath
- * @param {string} path
  * @param {IGenerateSwaggerConfig} config
+ * @param {string} routePath path of the route
  * @returns {Promise<IEndpoint>}
  */
-const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGenerateSwaggerConfig) => {
+const parseRouteEndpoint = async (route: IExpressRoute, basePath: string, config: IGenerateSwaggerConfig, routePath: string): Promise<IEndpoint> => {
 	const routeMethods = getRouteMethods(route)
 
 	const methods = await Promise.all(
-		map(routeMethods, async (method) => {
+		routeMethods.map(async (method) => {
 			// get middlewares and workflow of endpoint
 			const middlewaresHandlerPromises: Promise<{ middlewareName: string } & ILocation>[] = []
 			let workflowHandlerPromise: Promise<ILocation> | null = null
 			let security: ISecurity[] = []
 
-			forEach(route.stack, (handler) => {
+			route.stack.forEach((handler) => {
 				forEach(config.middlewares, (middleware) => {
 					if (handler.name === middleware.middlewareName) {
 						middlewaresHandlerPromises.push(
@@ -234,20 +236,17 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 					workflowHandlerPromise = locate(handler.handle)
 				}
 				if (config.swaggerInitInfo?.security?.scope === AUTH_SCOPE.ENDPOINT && config.swaggerInitInfo.security.authMiddlewareName === handler.name) {
-					security = map(config.swaggerInitInfo.security.methods, (securityMethod) => ({ [securityMethod.name]: [] }))
+					security = config.swaggerInitInfo.security.methods.map((securityMethod) => ({ [securityMethod.name]: [] }))
 				}
 			})
 
 			const [workflowHandler, ...middlewareHandlers] = await Promise.all([workflowHandlerPromise as Promise<ILocation> | null, ...middlewaresHandlerPromises])
 
 			// handle middleware attributeValues
-			const middlewares: IEndpointMiddleware[] = []
-			forEach(middlewareHandlers, (middlewareHandler) => {
-				middlewares.push({
-					name: middlewareHandler.middlewareName,
-					middlewareArguments: middlewareHandler.resultProperties
-				})
-			})
+			const middlewares: IEndpointMiddleware[] = middlewareHandlers.map((middlewareHandler) => ({
+				name: middlewareHandler.middlewareName,
+				middlewareArguments: middlewareHandler.resultProperties
+			}))
 
 			// handle request and response
 			let requestJoiSchema: Schema | null = null
@@ -286,8 +285,8 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 
 				// Handle error response schemas
 				if (config.errorResponseSchemaName) {
-					const errorResponseJoiSchemas = workflow[config.errorResponseSchemaName]
-					forEach(errorResponseJoiSchemas, (errorResponseJoiSchema) => {
+					const errorResponseJoiSchemas: Schema[] | Record<string, Schema> | undefined = workflow[config.errorResponseSchemaName]
+					forEach(errorResponseJoiSchemas, (errorResponseJoiSchema: Schema) => {
 						// eslint-disable-next-line no-underscore-dangle
 						const httpCodeFromDesc = errorResponseJoiSchema?._flags?.description
 
@@ -310,12 +309,12 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 		})
 	)
 
-	const pathSegments = (basePath && route.path === '/' ? '' : route.path).replace(/\/$/, '').replace(/^\//, '').split('/')
+	const pathSegments = (basePath && routePath === '/' ? '' : routePath).replace(/\/$/, '').replace(/^\//, '').split('/')
 	const basePathSegments = basePath.replace(/\/$/, '').replace(/^\//, '').split('/')
 
 	const resultPath = ['/', ...basePathSegments, ...pathSegments]
 		.map((tempPath) => {
-			if (startsWith(tempPath, ':')) {
+			if (tempPath.startsWith(':')) {
 				const temp = trimStart(tempPath, ':')
 				return `{${temp}}`
 			}
@@ -336,64 +335,138 @@ const parseRouteEndpoint = async (route: IRoute, basePath: string, config: IGene
 /**
  * Parses the provided express route and returns an array of endpoints
  *
- * @param {Object} route Express route object to be parsed
+ * @param {IExpressRoute} route Express route object to be parsed
  * @param {string} basePath The basePath the route is on
- * @param {Object} config Parser config
- * @return {IEndpoint}
+ * @param {IGenerateSwaggerConfig} config Parser config
+ * @param {string} routePath path of the route
+ * @return {Promise<IEndpoint | null>}
  */
-const parseExpressRoute = async (route: IRoute, basePath: string, config: IGenerateSwaggerConfig) => {
+const parseExpressRoute = async (route: IExpressRoute, basePath: string, config: IGenerateSwaggerConfig, routePath: string) => {
 	const filterRegex = config.filter ? new RegExp(config.filter) : null
-	if (filterRegex && !filterRegex.test(`${basePath}/${route.path}`)) {
+	if (filterRegex && !filterRegex.test(`${basePath}/${routePath}`)) {
 		return null
 	}
 
-	const endpoints = await parseRouteEndpoint(route, basePath, config)
+	const endpoints = await parseRouteEndpoint(route, basePath, config, routePath)
 
 	return endpoints
 }
+// #endregion
+
+// #region express 4 router (mount paths are parsed from layer.regexp)
+const regexpExpressRegexp = /^\/\^\\\/(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\(\[\^\\\/]\+\?\)\)))\\\/.*/ // before express v4.20.0
+const regexpExpressRegexp2 = /^\/\^\\?\/?(?:(:?[\w\\.-]*(?:\\\/:?[\w\\.-]*)*)|(\(\?:\\?\/?\([^)]+\)\)))\\\/.*/ // after express v4.20.0
+
+const expressRootRegexp = '/^\\/?(?=\\/|$)/i'
+
+const regexpExpressParamRegexp = /\(\?:\(\[\^\\\/]\+\?\)\)/g // before express v4.20.0
+const regexpExpressParamRegexp2 = /\(\?:\\?\\?\/?\([^)]+\)\)/g // after express v4.20.0
+
+const regexpExpressParamReplace = /\(\?:\(\[\^\\\/]\+\?\)\)/ // before express v4.20.0
+const regexpExpressParamReplace2 = /\(\?:\\?\\?\/?\([^)]+\)\)/ // after express v4.20.0
+
+const stackItemValidNames = ['router', 'bound dispatch', 'mounted_app']
 
 /**
- * Traverses all the routes defined in the provided express app and parses endpoints from them
+ * Checks if provided path segment contains a param regexp
  *
- * @param {Express} app
+ * @param {string} pathRegexp Path segment
+ * @returns {boolean} Returns true if path regexp is matched by regexpExpressParamRegexp, false otherwise
+ */
+const hasParams = (pathRegexp: string, parser: RegExp) => parser.test(pathRegexp)
+
+/**
+ * Returns parsers matching the format of provided express layer regexp (it differs before and after express v4.20.0)
+ *
+ * @param {string} pathRegexp Stringified express layer regexp
+ * @returns {IExpress4PathParsers | null} Returns null if regexp does not match any known format
+ */
+const getPathRegexpParsers = (pathRegexp: string): IExpress4PathParsers | null => {
+	if (regexpExpressRegexp.test(pathRegexp)) {
+		return { regexpExpressRegexp, regexpExpressParamRegexp, regexpExpressParamReplace }
+	}
+	if (regexpExpressRegexp2.test(pathRegexp)) {
+		return { regexpExpressRegexp: regexpExpressRegexp2, regexpExpressParamRegexp: regexpExpressParamRegexp2, regexpExpressParamReplace: regexpExpressParamReplace2 }
+	}
+	return null
+}
+
+/**
+ * Parses endpoint path from provided express path regexp
+ *
+ * @param {string} expressPathRegexp Stringified regexp from express layer
+ * @param {{ name: string }[]} params Path params from express layer
+ * @param {IExpress4PathParsers} parsers for processing express regexp path
+ * @returns {string | undefined}
+ */
+const parseExpressPath = (expressPathRegexp: string, params: { name: string }[], parsers: IExpress4PathParsers) => {
+	let parsedPath = parsers.regexpExpressRegexp.exec(expressPathRegexp)
+	let parsedRegexp = expressPathRegexp
+	let paramIdx = 0
+
+	while (hasParams(parsedRegexp, parsers.regexpExpressParamRegexp)) {
+		const paramId = `:${params[paramIdx].name}`
+
+		parsedRegexp = parsedRegexp.replace(parsers.regexpExpressParamReplace, paramId)
+
+		paramIdx += 1
+	}
+
+	if (parsedRegexp !== expressPathRegexp) {
+		parsedPath = parsers.regexpExpressRegexp.exec(parsedRegexp)
+	}
+
+	return parsedPath?.[1].replace(/\\\//g, '/')
+}
+
+/**
+ * Returns base path of the router mounted by provided express 4 layer
+ *
+ * @param {string} basePath Base path of the parent router
+ * @param {IExpress4Layer} layer Layer of mounted router
+ * @returns {string}
+ */
+const getExpress4MountPath = (basePath: string, layer: IExpress4Layer) => {
+	const layerRegexp = String(layer.regexp)
+
+	const parsers = getPathRegexpParsers(layerRegexp)
+	if (parsers) {
+		return `${basePath}/${parseExpressPath(layerRegexp, layer.keys, parsers)}`
+	}
+
+	if (!layer.path && layer.regexp && layerRegexp !== expressRootRegexp) {
+		return `${basePath}/ RegExp(${layerRegexp}) `
+	}
+
+	return basePath
+}
+
+/**
+ * Traverses all the routes defined in the provided express 4 app or router and parses endpoints from them
+ *
+ * @param {IExpress4App} app Express 4 app or router
  * @param {IGenerateSwaggerConfig} config
- * @param {string} [basePath='']
- * @param {IEndpoint[]} [endpoints=[]]
+ * @param {string} basePath
+ * @param {IEndpoint[]} endpoints
  * @returns {Promise<IEndpoint[]>}
  */
-const parseEndpoints = async (app: Express, config: IGenerateSwaggerConfig, basePath = '', endpoints: IEndpoint[] = []) => {
+const parseExpress4Endpoints = async (app: IExpress4App, config: IGenerateSwaggerConfig, basePath: string, endpoints: IEndpoint[]): Promise<IEndpoint[]> => {
 	// eslint-disable-next-line no-underscore-dangle
-	const stack = app.stack || ((app._router && app._router.stack) as IRouter['stack'][])
+	const stack = app.stack || app._router?.stack
 
 	if (!stack) {
 		addEndpoints(endpoints, { path: basePath, tags: [], methods: [] })
 	} else {
 		await Promise.all(
-			map(stack, async (stackItem) => {
-				if (stackItem.route) {
-					const newEndpoint = await parseExpressRoute(stackItem.route, basePath, config)
+			stack.map(async (layer) => {
+				if (layer.route) {
+					const newEndpoint = await parseExpressRoute(layer.route, basePath, config, layer.route.path)
 
 					if (newEndpoint) {
 						addEndpoints(endpoints, newEndpoint)
 					}
-				} else if (stackItemValidNames.indexOf(stackItem.name) > -1) {
-					let resultBasePath = basePath
-					const testResult = testPathRegexp(stackItem.regexp)
-					if (testResult.valid) {
-						const parsedPath = parseExpressPath(
-							stackItem.regexp,
-							stackItem.keys,
-							testResult.parsers as { regexpExpressRegexp: RegExp; regexpExpressParamRegexp: RegExp; regexpExpressParamReplace: RegExp }
-						)
-
-						resultBasePath = `${basePath}/${parsedPath}`
-					} else if (!stackItem.path && stackItem.regexp && stackItem.regexp.toString() !== expressRootRegexp) {
-						const regEcpPath = ` RegExp(${stackItem.regexp}) `
-
-						resultBasePath = `${basePath}/${regEcpPath}`
-					}
-
-					await parseEndpoints(stackItem.handle, config, resultBasePath, endpoints)
+				} else if (stackItemValidNames.includes(layer.name)) {
+					await parseExpress4Endpoints(layer.handle, config, getExpress4MountPath(basePath, layer), endpoints)
 				}
 			})
 		)
@@ -401,6 +474,144 @@ const parseEndpoints = async (app: Express, config: IGenerateSwaggerConfig, base
 
 	return endpoints
 }
+// #endregion
+
+// #region router with listRoutes (pillarjs/router#174, mount paths are read from layer.rawPath)
+/**
+ * Joins base path with the path a router is mounted on (layer `rawPath`)
+ *
+ * @param {string} basePath
+ * @param {LayerPath} mountPath
+ * @returns {string}
+ */
+const joinMountPath = (basePath: string, mountPath: LayerPath) => {
+	if (mountPath instanceof RegExp) {
+		return `${basePath}/ RegExp(${mountPath}) `
+	}
+
+	const parsedPath = mountPath.replace(/\/$/, '').replace(/^\//, '')
+
+	return parsedPath ? `${basePath}/${parsedPath}` : basePath
+}
+
+/**
+ * Traverses all the routes defined in the provided router with `listRoutes` support and parses endpoints from them
+ * Layers do not expose regexp, so mount paths of nested routers are read from `layer.rawPath` (the path the layer was registered with)
+ *
+ * @param {IListRoutesRouter} router
+ * @param {IGenerateSwaggerConfig} config
+ * @param {string} basePath
+ * @param {IEndpoint[]} endpoints
+ * @returns {Promise<IEndpoint[]>}
+ */
+const parseListRoutesRouterEndpoints = async (router: IListRoutesRouter, config: IGenerateSwaggerConfig, basePath: string, endpoints: IEndpoint[]): Promise<IEndpoint[]> => {
+	await Promise.all(
+		router.stack.map(async (layer) => {
+			const layerPaths = [layer.rawPath].flat()
+
+			const { route } = layer
+
+			if (route) {
+				await Promise.all(
+					layerPaths.map(async (layerPath) => {
+						if (layerPath instanceof RegExp) {
+							return
+						}
+
+						const newEndpoint = await parseExpressRoute(route, basePath, config, layerPath)
+
+						if (newEndpoint) {
+							addEndpoints(endpoints, newEndpoint)
+						}
+					})
+				)
+			} else if (Array.isArray(layer.handle.stack)) {
+				const mountedRouter = layer.handle as IListRoutesRouter
+
+				await Promise.all(layerPaths.map((layerPath) => parseListRoutesRouterEndpoints(mountedRouter, config, joinMountPath(basePath, layerPath), endpoints)))
+			}
+		})
+	)
+
+	return endpoints
+}
+// #endregion
+
+// #region router detection
+interface IAppLike {
+	lazyrouter?: unknown
+	_router?: unknown
+	router?: unknown
+	stack?: unknown
+}
+
+/**
+ * Checks if provided app is express 4 app (it has `lazyrouter` method) or express 4 router (its layers have `regexp`)
+ *
+ * @param {IAppLike} app Express app or router
+ * @returns {boolean}
+ */
+const isExpress4 = (app: IAppLike) => {
+	if (typeof app.lazyrouter === 'function') {
+		return true
+	}
+
+	return Array.isArray(app.stack) && app.stack.every((layer: { regexp?: unknown }) => layer.regexp instanceof RegExp)
+}
+
+/**
+ * Returns root router of provided express app (or the router itself, if router is provided)
+ * NOTE: `app.router` must not be accessed in express 4, because its getter throws
+ *
+ * @param {IAppLike} app Express app or router
+ * @returns {unknown}
+ */
+const getRootRouter = (app: IAppLike) => {
+	if (Array.isArray(app.stack)) {
+		return app
+	}
+
+	if (typeof app.lazyrouter === 'function') {
+		// eslint-disable-next-line no-underscore-dangle
+		return app._router
+	}
+
+	return app.router
+}
+
+/**
+ * Checks if provided router supports `listRoutes` (pillarjs/router#174)
+ *
+ * @param {unknown} router
+ * @returns {boolean}
+ */
+const hasListRoutes = (router: unknown): router is IListRoutesRouter => typeof (router as Partial<IListRoutesRouter> | undefined)?.listRoutes === 'function'
+
+/**
+ * Traverses all the routes defined in the provided express app and parses endpoints from them
+ * - router with `listRoutes` support (pillarjs/router#174) -> mount paths are read from layer.rawPath
+ * - express 4 -> mount paths are parsed from layer.regexp
+ * - otherwise (e.g. express 5 with router without `listRoutes`) routes can not be parsed
+ *
+ * @param {Express} app
+ * @param {IGenerateSwaggerConfig} config
+ * @returns {Promise<IEndpoint[]>}
+ */
+const parseEndpoints = (app: Express, config: IGenerateSwaggerConfig) => {
+	const appLike = app as unknown as IAppLike
+
+	const router = getRootRouter(appLike)
+	if (hasListRoutes(router)) {
+		return parseListRoutesRouterEndpoints(router, config, '', [])
+	}
+
+	if (isExpress4(appLike)) {
+		return parseExpress4Endpoints(appLike as IExpress4App, config, '', [])
+	}
+
+	throw new Error('Express router does not support listing routes. Use router version which contains pillarjs/router#174 (listRoutes, layer.rawPath)')
+}
+// #endregion
 
 /**
  * Traverses all the routes defined in the provided express app and parses endpoints from them
